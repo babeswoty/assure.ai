@@ -1,0 +1,108 @@
+{
+  "pilot_id": "PILOT-2026-01",
+  "control_id": "FC-JE-003",
+  "evaluation_version": "1.0",
+  "control_schema_version": "1.0",
+  "control_snapshot_ref": "sample_control_record.json@2026-09-20T14:45:00Z",
+  "evaluator_id": "l.moyo",
+  "evaluated_at": "2026-09-29T10:00:00Z",
+
+  "field_comparisons": [
+    {
+      "field": "documentation.who",
+      "assureai_value": "Preparer: any Financial Reporting team member. Reviewer: Financial Reporting Manager or Senior Accountant.",
+      "reference_value": "Anyone in FR can prepare; approval sits with the FR Manager or a Senior Accountant.",
+      "comparison": "aligned",
+      "material_discrepancy": false,
+      "reviewer_comment": "Different wording, same substantive answer.",
+      "supporting_source_references": []
+    },
+    {
+      "field": "documentation.why",
+      "assureai_value": null,
+      "reference_value": "Threshold exists to focus review effort on entries large enough to matter to the financial statements; not formally documented by the control owner.",
+      "comparison": "partially_aligned",
+      "material_discrepancy": false,
+      "reviewer_comment": "AssureAI correctly left this blank and flagged it as missing rather than guessing - the reviewer was able to fill in a plausible rationale from separate knowledge of the client, but this was not available to AssureAI from the walkthrough alone.",
+      "supporting_source_references": []
+    },
+    {
+      "field": "design_assessment.first_pass_design_conclusion",
+      "assureai_value": "partial",
+      "reference_value": "partial",
+      "comparison": "aligned",
+      "material_discrepancy": false,
+      "reviewer_comment": "Reviewer agrees the design is sound but incomplete pending the two open documentation items.",
+      "supporting_source_references": []
+    },
+    {
+      "field": "gap_assessment.gaps[GAP-1].impact",
+      "assureai_value": "low",
+      "reference_value": "medium",
+      "comparison": "not_aligned",
+      "material_discrepancy": false,
+      "reviewer_comment": "Reviewer would rate this medium given how often notification gaps cause late approvals in practice, but this is a judgement call, not a factual error - not material on its own.",
+      "supporting_source_references": []
+    }
+  ],
+
+  "traceability_assessments": [
+    {
+      "field": "documentation.who",
+      "cited_source_references": [
+        {
+          "source_id": "WT-2026-014-01",
+          "source_type": "walkthrough_transcript",
+          "source_name": "FC-JE-003 Walkthrough - J. Adebayo",
+          "locator": "00:03:12",
+          "excerpt": "Anyone on the FR team can key a manual JE, there's no restriction in the system."
+        }
+      ],
+      "result": "supported",
+      "reviewer_comment": "Excerpt directly supports the preparer half of the statement; reviewer verified the reviewer-role half against the same transcript section separately."
+    },
+    {
+      "field": "gap_assessment.gaps[GAP-1].root_cause_category",
+      "cited_source_references": [],
+      "result": "no_reference",
+      "reviewer_comment": "No source cited for the root-cause categorization - it reads as a reasonable inference, but nothing in the record backs it."
+    }
+  ],
+
+  "missing_information_comparisons": [
+    {
+      "field": "documentation.why",
+      "assureai_flagged_missing": true,
+      "reviewer_flagged_missing": true,
+      "result": "true_positive",
+      "reviewer_comment": "AssureAI correctly identified that the threshold rationale was never captured in the walkthrough."
+    }
+  ],
+
+  "usefulness_assessments": [
+    {
+      "field": "documentation.control_description",
+      "rating": "minor_amendment",
+      "reviewer_comment": "Accurate; reviewer tightened the wording but kept the substance as drafted."
+    },
+    {
+      "field": "gap_assessment.gaps[GAP-1].recommendation",
+      "rating": "accept_as_is",
+      "reviewer_comment": "Used verbatim in the final workpaper."
+    }
+  ],
+
+  "consistency_notes": [
+    {
+      "aspect": "use of PARTIAL vs FAIL for incomplete-but-sound designs",
+      "observation": "AssureAI used first_pass_design_conclusion=partial here, consistent with its use of 'partial' (not 'fail') on control AP-VEN-002, another control with open documentation questions but no evidence of an actual design flaw.",
+      "compared_control_ids": ["AP-VEN-002"],
+      "reviewer_comment": null
+    }
+  ],
+
+  "material_discrepancies": [],
+
+  "reviewer_decision": "not_reviewed",
+  "reviewer_decision_notes": "RACM review decision has not been recorded yet as of this pilot evaluation; evaluation was performed on the AI draft prior to the human review step."
+}

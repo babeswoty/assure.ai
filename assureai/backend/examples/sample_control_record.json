@@ -1,0 +1,216 @@
+{
+  "schema_version": "1.0",
+  "engagement": {
+    "engagement_id": "ENG-2026-014",
+    "client": "Northbridge Retail Bank",
+    "process": "Financial Close",
+    "subprocess": "Journal Entry Review"
+  },
+  "control": {
+    "control_id": "FC-JE-003",
+    "control_title": "Manual Journal Entry Review and Approval",
+    "risk": {
+      "risk_id": "R-FC-07",
+      "risk_description": "Unauthorized or erroneous manual journal entries could be posted without independent review, resulting in a material misstatement of the financial statements."
+    },
+    "control_objective": "Ensure all manual journal entries above the materiality threshold are reviewed and approved by someone other than the preparer before posting.",
+
+    "walkthrough": {
+      "questions": [
+        {
+          "question_id": "Q1",
+          "question_text": "Who is authorized to prepare manual journal entries?",
+          "answer": "Any member of the Financial Reporting team can prepare a manual journal entry in the ERP.",
+          "source_references": [
+            {
+              "source_id": "WT-2026-014-01",
+              "source_type": "walkthrough_transcript",
+              "source_name": "FC-JE-003 Walkthrough - J. Adebayo",
+              "locator": "00:03:12",
+              "excerpt": "Anyone on the FR team can key a manual JE, there's no restriction in the system."
+            }
+          ]
+        },
+        {
+          "question_id": "Q2",
+          "question_text": "How is the reviewer notified that an entry is awaiting approval?",
+          "answer": null,
+          "source_references": []
+        }
+      ],
+      "source_references": [
+        {
+          "source_id": "WT-2026-014-01",
+          "source_type": "walkthrough_transcript",
+          "source_name": "FC-JE-003 Walkthrough - J. Adebayo",
+          "locator": "full session"
+        }
+      ]
+    },
+
+    "documentation": {
+      "what": {
+        "value": "Manual journal entries over $50,000 are routed to a second Financial Reporting team member for review and approval before posting to the general ledger.",
+        "source_references": [
+          {
+            "source_id": "WT-2026-014-01",
+            "source_type": "walkthrough_transcript",
+            "source_name": "FC-JE-003 Walkthrough - J. Adebayo",
+            "locator": "00:04:05",
+            "excerpt": "Anything over fifty thousand has to go to a second reviewer before it posts."
+          }
+        ]
+      },
+      "who": {
+        "value": "Preparer: any Financial Reporting team member. Reviewer: Financial Reporting Manager or Senior Accountant.",
+        "source_references": [
+          {
+            "source_id": "WT-2026-014-01",
+            "source_type": "walkthrough_transcript",
+            "source_name": "FC-JE-003 Walkthrough - J. Adebayo",
+            "locator": "00:03:12",
+            "excerpt": "Anyone on the FR team can key a manual JE, there's no restriction in the system."
+          }
+        ]
+      },
+      "when": {
+        "value": "Prior to posting; entries are held in a pending-approval queue in the ERP.",
+        "source_references": [
+          {
+            "source_id": "WT-2026-014-01",
+            "source_type": "walkthrough_transcript",
+            "source_name": "FC-JE-003 Walkthrough - J. Adebayo",
+            "locator": "00:06:47"
+          }
+        ]
+      },
+      "why": {
+        "value": null,
+        "source_references": []
+      },
+      "where": {
+        "value": "ERP system (SAP) journal entry workflow module.",
+        "source_references": [
+          {
+            "source_id": "WT-2026-014-01",
+            "source_type": "walkthrough_transcript",
+            "source_name": "FC-JE-003 Walkthrough - J. Adebayo",
+            "locator": "00:08:02"
+          }
+        ]
+      },
+      "how": {
+        "value": "Preparer keys the entry and submits for approval; ERP workflow routes it to the reviewer queue; reviewer approves or rejects in-system.",
+        "source_references": [
+          {
+            "source_id": "WT-2026-014-01",
+            "source_type": "walkthrough_transcript",
+            "source_name": "FC-JE-003 Walkthrough - J. Adebayo",
+            "locator": "00:09:15-00:11:40"
+          }
+        ]
+      },
+      "control_description": "A second Financial Reporting team member reviews and approves manual journal entries above $50,000 in the ERP workflow before they post to the general ledger.",
+      "missing_information": [
+        {
+          "field": "documentation.why",
+          "reason": "The walkthrough transcript did not capture the control owner's stated rationale for the $50,000 threshold or the control's risk-mitigation purpose.",
+          "follow_up_question": "Why was $50,000 selected as the review threshold, and what risk is this control intended to mitigate?",
+          "status": "open"
+        }
+      ],
+      "follow_up_prompts": [
+        "How is the reviewer notified that an entry is awaiting approval (system alert, email, manual check)?"
+      ],
+      "source_references": [
+        {
+          "source_id": "WT-2026-014-01",
+          "source_type": "walkthrough_transcript",
+          "source_name": "FC-JE-003 Walkthrough - J. Adebayo",
+          "locator": "full session"
+        }
+      ],
+      "metadata": {
+        "generated_by": "ai",
+        "generated_at": "2026-09-20T14:32:00Z",
+        "model_or_author": "claude-sonnet-5"
+      }
+    },
+
+    "design_assessment": {
+      "completeness": {
+        "result": "partial",
+        "rationale": "Preparer, reviewer, threshold, and system are documented, but the notification mechanism for the reviewer and the stated control rationale are missing.",
+        "source_references": []
+      },
+      "relevance": {
+        "result": "pass",
+        "rationale": "The control directly addresses the risk of unreviewed manual journal entries reaching the general ledger.",
+        "source_references": []
+      },
+      "risk_objective_control_alignment": {
+        "result": "pass",
+        "rationale": "The stated control objective (independent review before posting) aligns with the identified risk of unauthorized or erroneous postings.",
+        "source_references": []
+      },
+      "first_pass_design_conclusion": "partial",
+      "conclusion_rationale": "The control is well-formed but has two open documentation gaps (reviewer notification mechanism, stated rationale for the threshold) that should be closed before a final design conclusion is reached.",
+      "rfi_items": [
+        {
+          "rfi_id": "RFI-1",
+          "request": "Provide the SAP workflow configuration screenshot showing the $50,000 approval threshold and routing rule.",
+          "rationale": "Corroborates the stated threshold and routing logic with system configuration evidence.",
+          "source_references": []
+        }
+      ],
+      "testing_procedures": [
+        {
+          "procedure_id": "TP-1",
+          "objective": "Confirm a sample of manual journal entries over $50,000 were approved by someone other than the preparer prior to posting.",
+          "steps": [
+            "Obtain the population of manual journal entries over $50,000 for the period.",
+            "Select a sample and trace each to the ERP approval workflow log.",
+            "Confirm the approver is not the preparer and that approval predates the posting date."
+          ],
+          "source_references": []
+        }
+      ],
+      "metadata": {
+        "generated_by": "ai",
+        "generated_at": "2026-09-20T14:40:00Z",
+        "model_or_author": "claude-sonnet-5"
+      }
+    },
+
+    "gap_assessment": {
+      "gaps": [
+        {
+          "gap_id": "GAP-1",
+          "gap_type": "documentation_gap",
+          "gap_title": "Reviewer notification mechanism undocumented",
+          "gap_description": "The walkthrough did not establish how the reviewer becomes aware an entry is awaiting their approval, which is relevant to assessing whether review occurs timely.",
+          "root_cause_category": "Incomplete walkthrough coverage",
+          "impact": "low",
+          "recommendation": "Obtain a follow-up answer from the control owner and, if a system notification exists, capture a screenshot as evidence.",
+          "proposed_action": "Schedule a 15-minute follow-up with J. Adebayo to close the open question.",
+          "action_addresses_gap": "yes",
+          "source_references": [],
+          "metadata": {
+            "generated_by": "ai",
+            "generated_at": "2026-09-20T14:45:00Z",
+            "model_or_author": "claude-sonnet-5"
+          }
+        }
+      ],
+      "missing_information": []
+    },
+
+    "review": {
+      "decision": "not_reviewed",
+      "reviewer_comments": null,
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "human_approval_required": true
+    }
+  }
+}
