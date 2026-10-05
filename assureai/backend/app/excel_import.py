@@ -1,349 +1,242 @@
-"""Robust Excel RACM importer with intelligent header detection and column mapping."""
+"""Excel RACM importer: reads one control from a RACM spreadsheet.
 
-import hashlib
+The standard headers are the ones this app's own Excel export uses (see
+STANDARD_HEADERS), so a RACM downloaded from the app can be uploaded again.
+Common alternative names (for example "Risk Ref", "Process Name",
+"Suggested Control") are accepted as aliases. Nothing client-specific is
+assumed: a client, OpCo or engagement id is only used if the file has a
+column for it.
+"""
+
 import html
 import re
-from typing import Any, Dict, List, Optional, Tuple
 from io import BytesIO
+from typing import Any, Dict, List, Optional
 
 try:
     import openpyxl
-    from openpyxl.utils import get_column_letter
-except ImportError:
+except ImportError:  # pragma: no cover - openpyxl is a declared requirement
     openpyxl = None
 
 
 class ExcelParsingError(Exception):
     """Base exception for Excel parsing issues."""
-    pass
 
 
 class ExcelValidationError(ExcelParsingError):
     """Exception for data validation issues with structured error details."""
+
     def __init__(self, errors: List[Dict[str, Any]]):
         self.errors = errors
         super().__init__(f"Excel validation failed with {len(errors)} error(s)")
 
 
-# Header aliases - maps variations to canonical field names
-HEADER_ALIASES = {
-    "ref": "Ref",
-    "#ref": "Ref",
-    "mega process": "Mega Process",
-    "major process": "Major Process Name",
-    "major process name": "Major Process Name",
-    "process name": "Process Name",
-    "sub-process": "Sub-process",
-    "subprocess": "Sub-process",
-    "risk ref": "Risk Ref",
-    "risk ref (#)": "Risk Ref",
-    "risk refence": "Risk Ref",
-    "risk description": "Risk Description",
-    "control objective": "Control Objective",
-    "control ref": "Control Ref",
-    "control ref (#)": "Control Ref",
-    "control reference": "Control Ref",
-    "aml/ctf control": "AML/CTF Control",
-    "suggested control": "Suggested Control",
-    "control nature": "Control Nature",
-    "control type": "Control Type",
-    "control type (manual/automated/semi automated)": "Control Type",
-    "frequency of control": "Frequency of Control",
-    "frequency": "Frequency of Control",
-    "control evidence": "Control Evidence",
-    "expected evidence": "Control Evidence",
-    "test procedures tod": "Test Procedures TOD",
-    "test procedures toe": "Test Procedures TOE",
-    "owner": "Owner",
-    "group fintech/fintech opco": "Owner",
+# The app's standard RACM input headers, in column order.
+STANDARD_HEADERS = [
+    "Engagement ID",
+    "Client",
+    "OpCo",
+    "Area",
+    "Mega Process",
+    "Process",
+    "Sub-process",
+    "Control ID",
+    "Control Reference",
+    "Control Title",
+    "Risk ID",
+    "Risk Description",
+    "Control Objective",
+    "Suggested Control Description",
+    "Control Frequency",
+    "Control Nature",
+    "Control Type",
+    "Expected Evidence",
+    "Suggested Test Procedures (ToD)",
+    "Suggested Test Procedures (ToE)",
+]
+
+# Other names people commonly use for the same columns.
+_EXTRA_ALIASES = {
+    "OpCo": ["operating company"],
+    "Area": ["major process", "major process name"],
+    "Process": ["process name"],
+    "Sub-process": ["subprocess", "sub process"],
+    "Control Reference": ["control ref", "control ref (#)"],
+    "Control Title": ["control name"],
+    "Risk ID": ["risk ref", "risk ref (#)", "risk reference", "risk refence"],
+    "Suggested Control Description": ["suggested control"],
+    "Control Frequency": ["frequency of control", "frequency"],
+    "Control Type": ["control type (manual/automated/semi automated)"],
+    "Expected Evidence": ["control evidence"],
+    "Suggested Test Procedures (ToD)": ["suggested test procedures tod", "test procedures tod", "test procedures (tod)"],
+    "Suggested Test Procedures (ToE)": ["suggested test procedures toe", "test procedures toe", "test procedures (toe)"],
 }
 
-# Column to RACM field mapping
-COLUMN_MAPPING = {
-    "Ref": ("_ref", str),
-    "Mega Process": ("engagement.mega_process", str),
-    "Major Process Name": ("engagement.area", str),
-    "Process Name": ("engagement.process", str),
-    "Sub-process": ("engagement.subprocess", str),
-    "Risk Ref": ("control.risk.risk_id", str),
-    "Risk Description": ("control.risk.risk_description", str),
-    "Control Objective": ("control.control_objective", str),
-    "Control Ref": ("control.control_id", str),
-    "Control Reference": ("control.control_reference", str),
-    "AML/CTF Control": ("control.control_title", str),
-    "Suggested Control": ("control.suggested_control_description", str),
-    "Control Nature": ("control.control_nature", str),
-    "Control Type": ("control.control_type", str),
-    "Frequency of Control": ("control.control_frequency", str),
-    "Control Evidence": ("control.expected_evidence", str),
-    "Test Procedures TOD": ("control.suggested_test_procedures_tod", str),
-    "Test Procedures TOE": ("control.suggested_test_procedures_toe", str),
+# Fields whose line breaks are worth keeping (steps, bullet points).
+_MULTILINE = {
+    "Control Objective",
+    "Suggested Control Description",
+    "Expected Evidence",
+    "Suggested Test Procedures (ToD)",
+    "Suggested Test Procedures (ToE)",
 }
 
+_NO_VALUE = {"nan", "none", "undefined", ""}
 
-def _normalize_header(text: str) -> str:
-    """Normalize Excel header for matching:
-    - Trim whitespace
-    - Replace line breaks with spaces
-    - Collapse repeated spaces
-    - Decode HTML entities
-    - Lowercase for comparison
-    """
-    if not text:
+
+def _normalize_header(text: Any) -> str:
+    """Trim, decode HTML entities, turn line breaks into spaces, collapse
+    repeated spaces, lowercase."""
+    if text is None:
         return ""
-
-    # Decode HTML entities (e.g., &amp; -> &)
     text = html.unescape(str(text))
-
-    # Replace line breaks with spaces
-    text = re.sub(r'[\r\n]+', ' ', text)
-
-    # Collapse repeated spaces
-    text = re.sub(r'\s+', ' ', text)
-
-    # Trim and lowercase
+    text = re.sub(r"[\r\n]+", " ", text)
+    text = re.sub(r"\s+", " ", text)
     return text.strip().lower()
 
 
+_ALIAS_TO_STANDARD: Dict[str, str] = {}
+for _header in STANDARD_HEADERS:
+    _ALIAS_TO_STANDARD[_normalize_header(_header)] = _header
+    for _alias in _EXTRA_ALIASES.get(_header, []):
+        _ALIAS_TO_STANDARD[_normalize_header(_alias)] = _header
+
+
+def _headers_in_row(ws, row_idx: int) -> Dict[str, int]:
+    """Map each recognised standard header in this row to its column number
+    (the first one wins if a header appears twice)."""
+    found: Dict[str, int] = {}
+    for col_idx in range(1, ws.max_column + 1):
+        standard = _ALIAS_TO_STANDARD.get(_normalize_header(ws.cell(row=row_idx, column=col_idx).value))
+        if standard and standard not in found:
+            found[standard] = col_idx
+    return found
+
+
+def _is_header_row(found: Dict[str, int]) -> bool:
+    return "Risk ID" in found and ("Control ID" in found or "Control Reference" in found)
+
+
 def _find_header_row(ws) -> Optional[int]:
-    """Scan first 10 rows to find the true header row.
-
-    The header row contains both a risk reference column and a control reference column.
-    """
-    # Canonical normalized names to look for
-    risk_ref_normalized = _normalize_header("Risk Ref")
-    control_ref_normalized = _normalize_header("Control Ref")
-
+    """The header row is the first of the top 10 rows that names both a risk
+    and a control identifier column."""
     for row_idx in range(1, min(11, ws.max_row + 1)):
-        has_risk_ref = False
-        has_control_ref = False
-        is_blank = True
-
-        for col_idx in range(1, ws.max_column + 1):
-            cell = ws.cell(row=row_idx, column=col_idx)
-            if cell.value is None:
-                continue
-
-            is_blank = False
-            normalized = _normalize_header(str(cell.value))
-
-            # Check if this is a risk ref or control ref column
-            if "risk" in normalized and "ref" in normalized:
-                has_risk_ref = True
-            if "control" in normalized and ("ref" in normalized or "reference" in normalized):
-                has_control_ref = True
-
-        # Found the header row if it has both columns and is not blank
-        if not is_blank and has_risk_ref and has_control_ref:
+        if _is_header_row(_headers_in_row(ws, row_idx)):
             return row_idx
-
     return None
 
 
-def _build_header_map(ws, header_row: int) -> Dict[str, int]:
-    """Build mapping from canonical header names to column indices."""
-    header_map = {}
-
-    for col_idx in range(1, ws.max_column + 1):
-        cell = ws.cell(row=header_row, column=col_idx)
-        if cell.value is None:
-            continue
-
-        normalized = _normalize_header(str(cell.value))
-
-        # Try to find matching canonical header
-        for canonical, aliases in HEADER_ALIASES.items():
-            if normalized == canonical:
-                header_map[aliases] = col_idx
-                break
-
-    return header_map
-
-
-def _get_cell_value(ws, row: int, col_idx: Optional[int], preserve_newlines: bool = False) -> Optional[str]:
-    """Extract cell value, handling None, NaN, and whitespace."""
+def _cell(ws, row: int, col_idx: Optional[int], keep_newlines: bool = False) -> Optional[str]:
     if col_idx is None:
         return None
-
-    cell = ws.cell(row=row, column=col_idx)
-    value = cell.value
-
+    value = ws.cell(row=row, column=col_idx).value
     if value is None:
         return None
-
-    # Convert to string
-    value_str = str(value).strip()
-
-    # Reject string literals for None values
-    if value_str.lower() in ("nan", "none", "undefined", ""):
+    text = str(value).strip()
+    if text.lower() in _NO_VALUE:
         return None
+    if not keep_newlines:
+        text = re.sub(r"\s+", " ", text)
+    return text or None
 
-    # For multiline cells, optionally preserve line breaks
-    if not preserve_newlines:
-        value_str = re.sub(r'\s+', ' ', value_str)
 
-    return value_str if value_str else None
+def _pick_worksheet(wb):
+    visible = [wb[name] for name in wb.sheetnames if wb[name].sheet_state != "hidden"]
+    for sheet in visible:
+        if sheet.title.lower() == "racm upload":
+            return sheet
+    return visible[0] if visible else None
 
 
 def extract_racm_from_excel(file_bytes: bytes) -> Dict[str, Any]:
-    """Extract RACM control data from Excel file.
+    """Read the first control row of a RACM spreadsheet.
 
-    Returns dict matching RACMControlRecord schema.
-    Raises ExcelParsingError or ExcelValidationError on issues.
+    Returns a dict shaped like RACMControlRecord. Raises ExcelParsingError for
+    an unreadable file or missing headers, and ExcelValidationError (with
+    per-row details) when a data row lacks a required identifier.
     """
     if not openpyxl:
         raise ExcelParsingError("openpyxl not installed")
 
     try:
-        # Load workbook
-        file_obj = BytesIO(file_bytes)
-        wb = openpyxl.load_workbook(file_obj, data_only=True)
+        wb = openpyxl.load_workbook(BytesIO(file_bytes), data_only=True)
     except Exception as e:
         raise ExcelParsingError(f"Failed to load workbook: {str(e)}")
 
-    # Find RACM Upload worksheet or use first visible sheet
-    ws = None
-    worksheet_name = None
-
-    for sheet_name in wb.sheetnames:
-        sheet = wb[sheet_name]
-        if not sheet.sheet_state == 'hidden':
-            if sheet_name.lower() == "racm upload":
-                ws = sheet
-                worksheet_name = sheet_name
-                break
-
-    # Fall back to first visible worksheet
-    if ws is None:
-        for sheet_name in wb.sheetnames:
-            sheet = wb[sheet_name]
-            if not sheet.sheet_state == 'hidden':
-                ws = sheet
-                worksheet_name = sheet_name
-                break
-
+    ws = _pick_worksheet(wb)
     if ws is None:
         raise ExcelParsingError("No usable worksheet found")
-
     if ws.max_row < 2:
         raise ExcelParsingError("Worksheet is empty")
 
-    # Find header row
     header_row = _find_header_row(ws)
     if header_row is None:
-        raise ExcelParsingError("Cannot detect header row - no row contains both Risk Ref and Control Ref")
+        raise ExcelParsingError(
+            "Cannot detect header row - no row names both a risk column (Risk ID) "
+            "and a control column (Control ID or Control Reference)"
+        )
+    cols = _headers_in_row(ws, header_row)
 
-    # Build header map
-    header_map = _build_header_map(ws, header_row)
-
-    # Validate required headers
-    required_headers = ["Risk Ref", "Control Ref"]
-    missing = [h for h in required_headers if h not in header_map]
-    if missing:
-        raise ExcelParsingError(f"Missing required columns: {', '.join(missing)}")
-
-    # Process data rows (starting after header row)
     errors: List[Dict[str, Any]] = []
-    extracted_controls = []
+    extracted: List[Dict[str, Any]] = []
 
     for row_idx in range(header_row + 1, ws.max_row + 1):
-        # Skip blank rows
-        is_blank = True
-        for col_idx in range(1, ws.max_column + 1):
-            if ws.cell(row=row_idx, column=col_idx).value is not None:
-                is_blank = False
-                break
-
-        if is_blank:
+        if all(ws.cell(row=row_idx, column=c).value is None for c in range(1, ws.max_column + 1)):
             continue
+
+        def get(header: str) -> Optional[str]:
+            return _cell(ws, row_idx, cols.get(header), keep_newlines=header in _MULTILINE)
+
+        # A file with only one control column uses it as both the id and the code.
+        control_reference = get("Control Reference") or get("Control ID")
+        control_id = get("Control ID") or get("Control Reference")
+        risk_id = get("Risk ID")
 
         row_errors = []
-
-        # Extract values
-        control_id = _get_cell_value(ws, row_idx, header_map.get("Control Ref"))
-        risk_id = _get_cell_value(ws, row_idx, header_map.get("Risk Ref"))
-
-        # Validate required fields
         if not control_id:
-            row_errors.append({
-                "field": "control.control_id",
-                "message": "Control Ref is required"
-            })
-
+            row_errors.append({"field": "control.control_id", "message": "Control ID (or Control Reference) is required"})
         if not risk_id:
-            row_errors.append({
-                "field": "control.risk.risk_id",
-                "message": "Risk Ref is required"
-            })
-
+            row_errors.append({"field": "control.risk.risk_id", "message": "Risk ID is required"})
         if row_errors:
-            for error in row_errors:
-                errors.append({
-                    "sheet": worksheet_name,
-                    "row": row_idx,
-                    **error
-                })
+            errors.extend({"sheet": ws.title, "row": row_idx, **e} for e in row_errors)
             continue
 
-        # Extract all fields
-        mega_process = _get_cell_value(ws, row_idx, header_map.get("Mega Process"))
-        area = _get_cell_value(ws, row_idx, header_map.get("Major Process Name"))
-        process = _get_cell_value(ws, row_idx, header_map.get("Process Name"))
-        subprocess = _get_cell_value(ws, row_idx, header_map.get("Sub-process"))
-        risk_description = _get_cell_value(ws, row_idx, header_map.get("Risk Description"))
-        control_objective = _get_cell_value(ws, row_idx, header_map.get("Control Objective"), preserve_newlines=True)
-        control_ref = _get_cell_value(ws, row_idx, header_map.get("Control Reference"))
-        control_title = _get_cell_value(ws, row_idx, header_map.get("AML/CTF Control"))
-        suggested_control = _get_cell_value(ws, row_idx, header_map.get("Suggested Control"), preserve_newlines=True)
-        control_nature = _get_cell_value(ws, row_idx, header_map.get("Control Nature"))
-        control_type = _get_cell_value(ws, row_idx, header_map.get("Control Type"))
-        frequency = _get_cell_value(ws, row_idx, header_map.get("Frequency of Control"))
-        evidence = _get_cell_value(ws, row_idx, header_map.get("Control Evidence"), preserve_newlines=True)
-        test_tod = _get_cell_value(ws, row_idx, header_map.get("Test Procedures TOD"), preserve_newlines=True)
-        test_toe = _get_cell_value(ws, row_idx, header_map.get("Test Procedures TOE"), preserve_newlines=True)
-
-        # Generate engagement_id deterministically
-        engagement_id = f"{worksheet_name}_{row_idx}".replace(" ", "_")
-
-        # Build RACM record
-        racm_record = {
-            "schema_version": "1.0",
-            "engagement": {
-                "engagement_id": engagement_id,
-                "client": "MTN Fintech",
-                "opco": "Group Fintech / Fintech OpCo",
-                "area": area,
-                "mega_process": mega_process,
-                "process": process or "Unknown Process",
-                "subprocess": subprocess,
-            },
-            "control": {
-                "control_id": control_id,
-                "control_title": control_title or control_id,
-                "control_reference": control_ref,
-                "risk": {
-                    "risk_id": risk_id,
-                    "risk_description": risk_description or risk_id,
+        extracted.append(
+            {
+                "schema_version": "1.0",
+                "engagement": {
+                    "engagement_id": get("Engagement ID") or f"{ws.title}_{row_idx}".replace(" ", "_"),
+                    "client": get("Client") or "Not specified",
+                    "opco": get("OpCo"),
+                    "area": get("Area"),
+                    "mega_process": get("Mega Process"),
+                    "process": get("Process") or "Unknown Process",
+                    "subprocess": get("Sub-process"),
                 },
-                "control_objective": control_objective,
-                "suggested_control_description": suggested_control,
-                "control_frequency": frequency,
-                "control_nature": control_nature,
-                "control_type": control_type,
-                "expected_evidence": evidence,
-                "suggested_test_procedures_tod": test_tod,
-                "suggested_test_procedures_toe": test_toe,
-            },
-        }
+                "control": {
+                    "control_id": control_id,
+                    "control_title": get("Control Title") or control_id,
+                    "control_reference": control_reference,
+                    "risk": {
+                        "risk_id": risk_id,
+                        "risk_description": get("Risk Description") or risk_id,
+                    },
+                    "control_objective": get("Control Objective"),
+                    "suggested_control_description": get("Suggested Control Description"),
+                    "control_frequency": get("Control Frequency"),
+                    "control_nature": get("Control Nature"),
+                    "control_type": get("Control Type"),
+                    "expected_evidence": get("Expected Evidence"),
+                    "suggested_test_procedures_tod": get("Suggested Test Procedures (ToD)"),
+                    "suggested_test_procedures_toe": get("Suggested Test Procedures (ToE)"),
+                },
+            }
+        )
 
-        extracted_controls.append(racm_record)
-
-    # Report errors if any
     if errors:
         raise ExcelValidationError(errors)
-
-    if not extracted_controls:
+    if not extracted:
         raise ExcelParsingError("No valid data rows found in worksheet")
 
-    # Return first control (TODO: handle multiple rows per spec)
-    return extracted_controls[0]
+    # The app works on one control at a time, so only the first row is used.
+    return extracted[0]

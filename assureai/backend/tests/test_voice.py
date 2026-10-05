@@ -89,3 +89,22 @@ def test_source_reference_excerpt_stays_verbatim_regardless_of_voice_rewrite():
     who = result.documentation.who
     assert who.value == "The account was created in Active Directory using standard templates."
     assert who.source_references[0].excerpt == "I create the account in Active Directory using standard templates."
+
+
+def test_second_verb_joined_to_a_passive_clause_is_passivised_too():
+    assert (
+        to_documentation_voice("I prepare the journal in the finance system and attach the supporting schedule.")
+        == "The journal was prepared in the finance system and the supporting schedule was attached."
+    )
+
+
+def test_a_joined_clause_with_its_own_verb_is_left_alone():
+    text = "I check the journal against the supporting schedule and confirm the accounts and amounts are correct."
+    assert to_documentation_voice(text) == (
+        "The journal was checked against the supporting schedule and confirm the accounts and amounts are correct."
+    )
+
+
+def test_conjunct_is_not_rewritten_when_the_clause_before_it_is_not_passive():
+    text = "The clerk prepares a run and exports the report."
+    assert to_documentation_voice(text) == text

@@ -1,0 +1,22 @@
+SYNTHETIC WALKTHROUGH TRANSCRIPT - PILOT CASE D (POTENTIAL_GAP)
+Fictitious client "Solstice Financial Services" - created for AssureAI pilot testing.
+This is NOT a real client transcript. Any resemblance to real individuals or
+organisations is coincidental.
+
+Control: PILOT-D-CM-004 - Emergency Change Post-Implementation Approval
+Interviewee: P. Naidoo, Change Manager (fictitious person)
+
+[L01] Interviewer: Walk me through what happens when an emergency change is needed.
+[L02] Interviewee: If something's broken in production and it can't wait for the normal change window, the engineer deploys the fix immediately and logs it as an emergency change in our change management tool.
+[L03] Interviewer: Who is involved, and when does approval happen relative to the deployment?
+[L04] Interviewee: The engineer deploys first, since it's an emergency, and then the change is supposed to go to the CAB - that's myself and two other senior engineers - for approval within 2 business days after the fact.
+[L05] Interviewer: Why is approval after the fact rather than before, for these specific changes?
+[L06] Interviewee: Because waiting for a CAB meeting before fixing a production outage would make the outage worse. The point is to allow the fix to happen fast, then have independent eyes confirm it was appropriate shortly afterward.
+[L07] Interviewer: Where is this recorded?
+[L08] Interviewee: In the change management tool - there's a ticket for the emergency change itself, and a separate approval record once CAB signs off.
+[L09] Interviewer: How does the CAB actually perform that post-implementation review?
+[L10] Interviewee: We look at what was changed, why, whether it worked, and whether it should also go through a proper change request afterward for the permanent fix.
+[L11] Interviewer: How reliably does the 2-day approval SLA actually get met in practice?
+[L12] Interviewee: Honestly, not that reliably. I pulled the log before this call out of curiosity - of the last 6 emergency changes this quarter, only 2 have a completed CAB approval record. The other 4 are still sitting open, some of them over three weeks old.
+[L13] Interviewer: Is there any escalation or tracking for those open ones?
+[L14] Interviewee: Not really - there's no automatic reminder or escalation, it relies on one of us remembering to follow up.

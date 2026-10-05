@@ -1,0 +1,15 @@
+{
+  "_label": "SYNTHETIC - fictitious RACM tracker export, created for AssureAI pilot testing. Not real client data.",
+  "source_id": "RACM-TRACKER-PILOT-B-UAM-002",
+  "source_type": "racm_input",
+  "source_name": "Solstice FY26 IT General Controls RACM Tracker (SYNTHETIC)",
+  "locator": "row 15",
+  "fields_as_originally_entered": {
+    "control_reference": "ITGC-UAM-02",
+    "control_description_as_written": "Access revoked on termination.",
+    "control_owner_as_entered": "IT Operations",
+    "frequency_as_entered": "Per event",
+    "control_type_as_entered": "Preventive",
+    "control_nature_as_entered": "Manual"
+  }
+}

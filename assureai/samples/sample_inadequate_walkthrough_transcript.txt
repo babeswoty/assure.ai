@@ -1,0 +1,21 @@
+SYNTHETIC WALKTHROUGH TRANSCRIPT - SAMPLE CONTROL SAMPLE-GL-001
+Fictitious client "Sample Client Ltd" - created for testing AssureAI.
+This is NOT a real client transcript. Any resemblance to real individuals or
+organisations is coincidental.
+
+Control: SAMPLE-GL-001 - Manual Journal Entry Approval
+Interviewee: S. Mokoena, General Ledger Accountant (fictitious person)
+
+[L01] Interviewer: Can you walk me through how a manual journal entry gets approved before it is posted?
+[L02] Interviewee: Sure. When a correction or accrual is needed, I prepare the journal in the finance system and attach the supporting schedule.
+[L03] Interviewee: The journal is then routed in the system for approval before it can be posted to the general ledger.
+[L04] Interviewer: Who approves the journal?
+[L05] Interviewee: That's me too, actually - I'm also the one who approves it in the system, because the Finance Manager is rarely available at month end. So I prepare and approve the journals myself as well.
+[L06] Interviewer: How often does this happen, or is it triggered by something specific?
+[L07] Interviewee: Every month, mostly around month end, and also whenever a correction is needed.
+[L08] Interviewer: Why is an approval step needed before posting?
+[L09] Interviewee: Because a wrong or unauthorised journal can misstate the financial results, so the approval is meant to prevent errors and unauthorised entries in the general ledger.
+[L10] Interviewer: Where is the approval recorded?
+[L11] Interviewee: In the finance system - the journal, the supporting schedule and the approval are all stored against the journal entry record, with timestamps.
+[L12] Interviewer: And how exactly does the review and approval work in practice?
+[L13] Interviewee: I check the journal against the supporting schedule and confirm the accounts and amounts are correct. I then click approve in the system and the journal posts to the general ledger. I save the schedule with the journal entry record.

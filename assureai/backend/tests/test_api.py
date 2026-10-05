@@ -302,3 +302,116 @@ def test_export_excel_populates_the_gap_block_from_the_drafted_gap():
     reason = _xlsx_cell(r.content, "Reason")
     assert record["control"]["control_objective"] in reason
     assert gap["gap_description"] in reason
+
+
+# ---------- file uploads: Excel RACM and Word/text transcripts ----------
+
+XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+
+def _racm_workbook(headers, rows) -> bytes:
+    import openpyxl
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.append(headers)
+    for row in rows:
+        ws.append(row)
+    out = BytesIO()
+    wb.save(out)
+    return out.getvalue()
+
+
+def _docx_bytes(paragraphs) -> bytes:
+    from docx import Document
+
+    doc = Document()
+    for p in paragraphs:
+        doc.add_paragraph(p)
+    out = BytesIO()
+    doc.save(out)
+    return out.getvalue()
+
+
+def test_convert_excel_to_racm_returns_a_valid_record():
+    data = _racm_workbook(
+        ["Risk ID", "Control ID", "Control Title", "Process"], [["R-1", "C-1", "Access approval", "Access"]]
+    )
+    r = client.post("/api/convert-excel-to-racm", files={"file": ("racm.xlsx", data, XLSX_MIME)})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["control"]["control_id"] == "C-1"
+    assert body["control"]["control_title"] == "Access approval"
+    # the converted record goes straight into the normal pipeline
+    assert client.post("/api/records/validate", json={"record": body}).status_code == 200
+
+
+def test_convert_excel_to_racm_reports_missing_identifiers_with_the_row():
+    data = _racm_workbook(["Risk ID", "Control ID"], [["R-1", None]])
+    r = client.post("/api/convert-excel-to-racm", files={"file": ("racm.xlsx", data, XLSX_MIME)})
+    assert r.status_code == 422
+    assert "row 2" in r.json()["detail"][0]["field"]
+
+
+def test_convert_excel_to_racm_rejects_a_file_without_the_standard_headers():
+    data = _racm_workbook(["Foo", "Bar"], [["a", "b"]])
+    r = client.post("/api/convert-excel-to-racm", files={"file": ("racm.xlsx", data, XLSX_MIME)})
+    assert r.status_code == 400
+    assert "Cannot detect header row" in r.json()["detail"]
+
+
+def test_convert_excel_to_racm_explains_that_legacy_xls_is_not_supported():
+    r = client.post("/api/convert-excel-to-racm", files={"file": ("racm.xls", b"x", "application/vnd.ms-excel")})
+    assert r.status_code == 400
+    assert "Save As .xlsx" in r.json()["detail"]
+
+
+def test_convert_excel_to_racm_rejects_other_file_types_and_empty_files():
+    assert client.post("/api/convert-excel-to-racm", files={"file": ("racm.csv", b"a,b", "text/csv")}).status_code == 400
+    assert client.post("/api/convert-excel-to-racm", files={"file": ("racm.xlsx", b"", XLSX_MIME)}).status_code == 400
+
+
+def test_extract_text_from_a_docx_transcript():
+    data = _docx_bytes(["[L01] Interviewer: Who performs it?", "[L02] Interviewee: The Finance Manager."])
+    r = client.post("/api/extract-text-from-document", files={"file": ("walkthrough.docx", data, DOCX_MIME)})
+    assert r.status_code == 200
+    assert r.json() == {
+        "text": "[L01] Interviewer: Who performs it?\n[L02] Interviewee: The Finance Manager.",
+        "filename": "walkthrough.docx",
+    }
+
+
+def test_a_docx_transcript_runs_through_the_normal_extraction_pipeline():
+    case = _load_case("well_documented")
+    text = case["transcript_text"]
+    data = _docx_bytes(text.split("\n"))
+    uploaded = client.post("/api/extract-text-from-document", files={"file": ("t.docx", data, DOCX_MIME)}).json()["text"]
+
+    questions = client.post("/api/questions/generate", json={"record": case["record"]}).json()
+    e = client.post(
+        "/api/transcripts/extract",
+        json={"record": case["record"], "questions": questions, "transcript_text": uploaded},
+    )
+    assert e.status_code == 200
+    assert e.json()["documentation"]["who"]["value"] is not None
+
+
+def test_extract_text_from_a_txt_transcript():
+    r = client.post("/api/extract-text-from-document", files={"file": ("t.txt", b"[L01] Interviewer: Hi.", "text/plain")})
+    assert r.status_code == 200
+    assert r.json()["text"] == "[L01] Interviewer: Hi."
+
+
+def test_extract_text_explains_that_legacy_doc_is_not_supported():
+    r = client.post("/api/extract-text-from-document", files={"file": ("t.doc", b"x", "application/msword")})
+    assert r.status_code == 400
+    assert "Save As .docx" in r.json()["detail"]
+
+
+def test_extract_text_rejects_unsupported_empty_blank_and_corrupt_files():
+    post = lambda name, data: client.post("/api/extract-text-from-document", files={"file": (name, data, "application/octet-stream")})
+    assert post("t.pdf", b"x").status_code == 400
+    assert post("t.txt", b"").status_code == 400
+    assert post("t.txt", b"   \n").status_code == 400
+    assert post("t.docx", b"not a word document").status_code == 400

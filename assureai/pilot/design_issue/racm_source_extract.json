@@ -1,0 +1,15 @@
+{
+  "_label": "SYNTHETIC - fictitious RACM tracker export, created for AssureAI pilot testing. Not real client data.",
+  "source_id": "RACM-TRACKER-PILOT-C-UAM-003",
+  "source_type": "racm_input",
+  "source_name": "Solstice FY26 IT General Controls RACM Tracker (SYNTHETIC)",
+  "locator": "row 16",
+  "fields_as_originally_entered": {
+    "control_reference": "ITGC-UAM-03",
+    "control_description_as_written": "Quarterly review of admin access by independent reviewer.",
+    "control_owner_as_entered": "IT Security",
+    "frequency_as_entered": "Quarterly",
+    "control_type_as_entered": "Detective",
+    "control_nature_as_entered": "Manual"
+  }
+}

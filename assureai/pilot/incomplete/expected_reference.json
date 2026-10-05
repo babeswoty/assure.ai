@@ -1,0 +1,56 @@
+{
+  "case_id": "incomplete",
+  "control_id": "PILOT-B-UAM-002",
+
+  "expected_what": {
+    "value": "Upon HR's termination notice, the AD account is disabled and the user is removed from the major application groups the technician remembers to check (email, VPN, finance system if applicable)."
+  },
+  "expected_who": {
+    "value": "Whoever on the helpdesk team is available to pick up the ticket - no named or dedicated owner."
+  },
+  "expected_when": {
+    "value": null,
+    "note": "Interviewee explicitly stated there is no official timeframe ('I'm honestly not sure there's an official timeframe... depends on how busy the queue is') - genuinely not determinable from this walkthrough, not merely unasked."
+  },
+  "expected_why": {
+    "value": null,
+    "note": "Interviewee explicitly could not explain the rationale for the current process ('I couldn't tell you why it's set up this way... nobody's ever explained a specific reason to me') - genuinely not determinable."
+  },
+  "expected_where": {
+    "value": "A helpdesk ticket is logged in the ticketing system for each deactivation."
+  },
+  "expected_how": {
+    "value": "AD account is disabled; user is removed from the application groups the technician remembers to check (not a documented, exhaustive checklist)."
+  },
+
+  "expected_missing_information": [
+    {
+      "field": "documentation.when",
+      "reason": "The interviewee could not state a defined timeframe or SLA for deactivation relative to the termination date.",
+      "follow_up_question": "Is there a documented target timeframe (e.g. same business day, within X hours) for revoking access after a termination notice is received?",
+      "status": "open"
+    },
+    {
+      "field": "documentation.why",
+      "reason": "The interviewee could not explain why deactivation is handled via the general helpdesk queue rather than a dedicated or prioritized process.",
+      "follow_up_question": "What is the rationale for routing termination-driven access revocation through the general helpdesk queue instead of a dedicated or prioritized process?",
+      "status": "open"
+    }
+  ],
+
+  "expected_traceability": [
+    {"field": "documentation.what", "source": {"source_id": "WT-PILOT-B-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case B Walkthrough Transcript (SYNTHETIC)", "locator": "L02", "excerpt": "we go into Active Directory and disable the account"}},
+    {"field": "documentation.who", "source": {"source_id": "WT-PILOT-B-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case B Walkthrough Transcript (SYNTHETIC)", "locator": "L04", "excerpt": "whoever's free on the helpdesk team picks it up from the ticket queue"}},
+    {"field": "documentation.where", "source": {"source_id": "WT-PILOT-B-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case B Walkthrough Transcript (SYNTHETIC)", "locator": "L12", "excerpt": "There's a helpdesk ticket in our ticketing system for each one"}},
+    {"field": "documentation.how", "source": {"source_id": "WT-PILOT-B-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case B Walkthrough Transcript (SYNTHETIC)", "locator": "L06", "excerpt": "remove them from the major application groups we remember to check"}}
+  ],
+
+  "design_conclusion_determinable": true,
+  "expected_design_conclusion": "partial",
+  "expected_design_rationale": "Access is in fact revoked by some process (what/who/where/how are established), so a design view can reasonably be formed - but without a defined timeframe or a stated rationale for the current approach, timeliness and intent cannot be assessed. This is a partial, qualified conclusion, not a full pass, and not a refusal to conclude at all (contrast with the insufficient_information scenario, where nothing reliable can be said).",
+
+  "expected_risk_objective_control_alignment": null,
+  "expected_gap_indicator": {"expected": false},
+
+  "reviewer_notes": "Deliberately omits WHEN and WHY only - WHAT/WHO/WHERE/HOW remain answerable, if a little informal ('whoever's free', 'groups we remember to check'). That informality is a secondary signal worth a reviewer's attention but is NOT elevated to an expected gap here, to keep this scenario's primary signal (missing-information detection on exactly two attributes) unambiguous; the potential_gap scenario carries a cleaner, purpose-built gap signal instead."
+}

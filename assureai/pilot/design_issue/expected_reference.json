@@ -1,0 +1,47 @@
+{
+  "case_id": "design_issue",
+  "control_id": "PILOT-C-UAM-003",
+
+  "expected_what": {
+    "value": "Quarterly, the reviewer pulls a report of everyone with admin-level access across core systems and confirms line-by-line whether each person still needs that access, signing off on the review."
+  },
+  "expected_who": {
+    "value": "R. Fischer, Senior Systems Administrator, performs the review. The same individual is also the one who grants admin access whenever it is requested during the quarter."
+  },
+  "expected_when": {
+    "value": "Last week of every quarter, as a recurring calendar task."
+  },
+  "expected_why": {
+    "value": "To catch admin rights left over from a role someone has since moved out of, or a temporary access grant that was never removed."
+  },
+  "expected_where": {
+    "value": "The reviewed spreadsheet, with sign-off date, is saved to a shared drive folder called \"Access Reviews.\""
+  },
+  "expected_how": {
+    "value": "Current job title is checked against a list of roles that justify admin access; the person's manager is asked to confirm where the reviewer is unsure."
+  },
+
+  "expected_missing_information": [],
+
+  "expected_traceability": [
+    {"field": "documentation.what", "source": {"source_id": "WT-PILOT-C-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case C Walkthrough Transcript (SYNTHETIC)", "locator": "L02,L04", "excerpt": "I pull a report of everyone with admin-level access across our core systems"}},
+    {"field": "documentation.who", "source": {"source_id": "WT-PILOT-C-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case C Walkthrough Transcript (SYNTHETIC)", "locator": "L06", "excerpt": "I'm also the one who grants admin access whenever someone requests it during the quarter"}},
+    {"field": "documentation.when", "source": {"source_id": "WT-PILOT-C-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case C Walkthrough Transcript (SYNTHETIC)", "locator": "L10", "excerpt": "Last week of every quarter"}},
+    {"field": "documentation.why", "source": {"source_id": "WT-PILOT-C-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case C Walkthrough Transcript (SYNTHETIC)", "locator": "L12", "excerpt": "make sure nobody's still got admin rights from a role they've since moved out of"}},
+    {"field": "documentation.where", "source": {"source_id": "WT-PILOT-C-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case C Walkthrough Transcript (SYNTHETIC)", "locator": "L14", "excerpt": "I save the reviewed spreadsheet with my sign-off date in a shared drive folder"}},
+    {"field": "documentation.how", "source": {"source_id": "WT-PILOT-C-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case C Walkthrough Transcript (SYNTHETIC)", "locator": "L16", "excerpt": "I check their current job title against a list of roles that justify admin access"}}
+  ],
+
+  "design_conclusion_determinable": true,
+  "expected_design_conclusion": "fail",
+  "expected_design_rationale": "All six attributes are fully documented, but the control objective specifically requires the review to be performed by someone independent of the privileged-access provisioning process. The walkthrough directly establishes that the same individual (R. Fischer) both grants admin access during the quarter and reviews it at quarter-end (L06-L08). That lack of independence is a design flaw, not a documentation gap - it exists regardless of how well everything else is recorded, and it is the central issue a reviewer would raise for this control.",
+
+  "expected_risk_objective_control_alignment": {
+    "result": "fail",
+    "rationale": "The control objective explicitly requires review by someone independent of provisioning. The interviewee directly confirms (L06-L08) that they perform both roles, with no compensating independent reviewer identified. This is a self-review condition that undermines the control's ability to detect inappropriate access the reviewer themselves granted.",
+    "source_locator": "L06-L08"
+  },
+  "expected_gap_indicator": {"expected": false},
+
+  "reviewer_notes": "Deliberately the inverse of a 'looks complete = must be fine' trap: every attribute is answerable, but the alignment problem is buried in the answer to a single follow-up question (L05-L08). Tests whether AssureAI reads for substance (independence) rather than just checking that all six boxes have text in them, and whether it can cite evidence for a NEGATIVE conclusion, not only positive ones."
+}

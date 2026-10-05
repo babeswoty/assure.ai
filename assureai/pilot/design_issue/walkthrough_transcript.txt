@@ -1,0 +1,24 @@
+SYNTHETIC WALKTHROUGH TRANSCRIPT - PILOT CASE C (DESIGN_ISSUE)
+Fictitious client "Solstice Financial Services" - created for AssureAI pilot testing.
+This is NOT a real client transcript. Any resemblance to real individuals or
+organisations is coincidental.
+
+Control: PILOT-C-UAM-003 - Quarterly Privileged Access Review
+Interviewee: R. Fischer, Senior Systems Administrator (fictitious person)
+
+[L01] Interviewer: How does the privileged access review work?
+[L02] Interviewee: Every quarter, I pull a report of everyone with admin-level access across our core systems.
+[L03] Interviewer: What do you actually do with that report?
+[L04] Interviewee: I go through it line by line and confirm each person still needs that level of access for their current role, and I sign off on the review.
+[L05] Interviewer: Who is "I" in this case - what's your role relative to granting that access in the first place?
+[L06] Interviewee: That's me too, actually - I'm also the one who grants admin access whenever someone requests it during the quarter.
+[L07] Interviewer: So the same person both grants the access during the quarter and reviews it at quarter-end?
+[L08] Interviewee: Correct, it's always been me for both. We're a small IT team, so there isn't really anyone else who understands the systems well enough to review it.
+[L09] Interviewer: When exactly does the review happen?
+[L10] Interviewee: Last week of every quarter - it's on my calendar as a recurring task.
+[L11] Interviewer: Why is the review performed?
+[L12] Interviewee: To make sure nobody's still got admin rights from a role they've since moved out of, or a temporary access grant that was never removed.
+[L13] Interviewer: Where do you document the review?
+[L14] Interviewee: I save the reviewed spreadsheet with my sign-off date in a shared drive folder called "Access Reviews."
+[L15] Interviewer: How do you decide whether someone still needs the access?
+[L16] Interviewee: I check their current job title against a list of roles that justify admin access, and I ask their manager to confirm if I'm not sure.

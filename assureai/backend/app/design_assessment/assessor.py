@@ -136,13 +136,17 @@ def _assess_alignment(control: Control, completeness: AssessmentDimension) -> As
     objective_and_risk = f"{control.control_objective or ''} {control.risk.risk_description}".lower()
     who_value = doc.who.value or ""
     if any(kw in objective_and_risk for kw in _INDEPENDENCE_REQUIRED_KEYWORDS):
-        who_lower = who_value.lower()
-        if any(sig in who_lower for sig in _SELF_REVIEW_SIGNALS):
+        # The documented value may have been shortened or reworded, so the
+        # verbatim evidence behind it is checked too - the self-review signal
+        # is usually in the interviewee's own words.
+        who_evidence = [who_value] + [r.excerpt for r in doc.who.source_references if r.excerpt]
+        quoted = next((t for t in who_evidence if any(sig in t.lower() for sig in _SELF_REVIEW_SIGNALS)), None)
+        if quoted is not None:
             return AssessmentDimension(
                 result=AssessmentResult.FAIL,
                 rationale=(
                     "The control objective/risk requires independence between roles, but the documented "
-                    f"WHO indicates the same individual performs both: \"{who_value}\""
+                    f"WHO indicates the same individual performs both: \"{quoted}\""
                 ),
             )
 

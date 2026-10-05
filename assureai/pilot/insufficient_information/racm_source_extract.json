@@ -1,0 +1,15 @@
+{
+  "_label": "SYNTHETIC - fictitious RACM tracker export, created for AssureAI pilot testing. Not real client data.",
+  "source_id": "RACM-TRACKER-PILOT-E-CM-005",
+  "source_type": "racm_input",
+  "source_name": "Solstice FY26 IT General Controls RACM Tracker (SYNTHETIC)",
+  "locator": "row 23",
+  "fields_as_originally_entered": {
+    "control_reference": "ITGC-CM-05",
+    "control_description_as_written": "Standard changes tested and CAB approved before deployment.",
+    "control_owner_as_entered": "Change Management",
+    "frequency_as_entered": "Per event",
+    "control_type_as_entered": "Preventive",
+    "control_nature_as_entered": "Manual"
+  }
+}

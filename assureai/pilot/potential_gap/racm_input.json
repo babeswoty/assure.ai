@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "engagement": {
+    "engagement_id": "ENG-PILOT-2026-01",
+    "client": "Solstice Financial Services (SYNTHETIC - fictitious entity created for AssureAI pilot testing; not a real client)",
+    "opco": "Solstice Financial Services (South Africa) (SYNTHETIC)",
+    "area": "Information Technology",
+    "mega_process": "IT General Controls",
+    "process": "Change Management",
+    "subprocess": "Emergency Changes"
+  },
+  "control": {
+    "control_id": "PILOT-D-CM-004",
+    "control_title": "Emergency Change Post-Implementation Approval",
+    "control_reference": "ITGC-CM-04",
+    "risk": {
+      "risk_id": "RISK-PILOT-D-01",
+      "risk_description": "Emergency changes deployed to production without timely post-implementation review could introduce unauthorized or untested changes that go undetected."
+    },
+    "control_objective": "To ensure that all emergency changes require documented Change Advisory Board (CAB) post-implementation approval within 2 business days of deployment.",
+    "suggested_control_description": "Emergency changes get CAB approval after the fact within 2 days.",
+    "control_frequency": "Per event (triggered by an emergency change)",
+    "control_nature": "Manual",
+    "control_type": "Detective",
+    "expected_evidence": "CAB post-implementation approval record in the change management tool.",
+    "suggested_test_procedures_tod": "Inspect the RACM and walkthrough documentation to confirm the control is designed to require CAB post-implementation approval of emergency changes within 2 business days of deployment.",
+    "suggested_test_procedures_toe": "For a sample of emergency changes in the period, inspect the change ticket and CAB approval record to confirm approval was obtained and evaluate whether it was completed within the 2-business-day SLA."
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "engagement": {
+    "engagement_id": "ENG-PILOT-2026-01",
+    "client": "Solstice Financial Services (SYNTHETIC - fictitious entity created for AssureAI pilot testing; not a real client)",
+    "opco": "Solstice Financial Services (South Africa) (SYNTHETIC)",
+    "area": "Information Technology",
+    "mega_process": "IT General Controls",
+    "process": "User Access Management",
+    "subprocess": "Privileged Access Review"
+  },
+  "control": {
+    "control_id": "PILOT-C-UAM-003",
+    "control_title": "Quarterly Privileged Access Review",
+    "control_reference": "ITGC-UAM-03",
+    "risk": {
+      "risk_id": "RISK-PILOT-C-01",
+      "risk_description": "Excessive or inappropriate privileged/administrative access may go undetected without independent oversight."
+    },
+    "control_objective": "To ensure that privileged/administrative access assignments are reviewed quarterly by an individual independent of the privileged-access provisioning process, to confirm continued business need.",
+    "suggested_control_description": "Quarterly review of admin access by independent reviewer.",
+    "control_frequency": "Quarterly",
+    "control_nature": "Manual",
+    "control_type": "Detective",
+    "expected_evidence": "Signed-off quarterly access review spreadsheet.",
+    "suggested_test_procedures_tod": "Inspect the RACM and walkthrough documentation to confirm the control is designed so that privileged access is reviewed quarterly by an individual independent of the provisioning process.",
+    "suggested_test_procedures_toe": "For a sample of quarters, inspect the signed-off access review spreadsheet to confirm the review was performed, and corroborate the identity and independence of the reviewer."
+  }
+}

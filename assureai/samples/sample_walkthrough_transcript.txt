@@ -1,0 +1,21 @@
+SYNTHETIC WALKTHROUGH TRANSCRIPT - SAMPLE CONTROL SAMPLE-AP-001
+Fictitious client "Sample Client Ltd" - created for testing AssureAI.
+This is NOT a real client transcript. Any resemblance to real individuals or
+organisations is coincidental.
+
+Control: SAMPLE-AP-001 - Supplier Payment Approval
+Interviewee: A. Patel, Accounts Payable Supervisor (fictitious person)
+
+[L01] Interviewer: Can you walk me through how a supplier payment gets approved before it is paid?
+[L02] Interviewee: Sure. Each week the AP clerk prepares a payment run in the finance system from all approved supplier invoices that are due.
+[L03] Interviewee: The run is exported as a payment run report showing each supplier, invoice number and amount.
+[L04] Interviewer: Who reviews and approves the payment run?
+[L05] Interviewee: I review it as the AP Supervisor, and the Finance Manager approves the final run. Neither of us prepares the payment run, so the approver is always independent of the preparer.
+[L06] Interviewer: How often does this happen, or is it triggered by something specific?
+[L07] Interviewee: Every Thursday, as part of the weekly payment run. Payments cannot be released until both approvals are done, usually before noon.
+[L08] Interviewer: Why is the run approved before it is released to the bank?
+[L09] Interviewee: Because once a payment is released it is hard to recover, so this prevents unauthorised, duplicate or incorrect payments to suppliers. An independent approver also stops one person from both creating and approving a payment.
+[L10] Interviewer: Where is the approval recorded?
+[L11] Interviewee: In the finance system - the payment run, both approvals and the bank release confirmation are stored against the same payment run record, with timestamps.
+[L12] Interviewer: And how exactly does the review and approval work in practice?
+[L13] Interviewee: I compare the payment run report to the supplier invoices and the approved purchase orders, and check for duplicates and changed bank details. I then sign off in the system, and the Finance Manager reviews my sign-off and approves the run for release to the bank. I save the signed run report with the bank confirmation in the payment run record.

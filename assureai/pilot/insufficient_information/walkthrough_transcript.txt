@@ -1,0 +1,19 @@
+SYNTHETIC WALKTHROUGH TRANSCRIPT - PILOT CASE E (INSUFFICIENT_INFORMATION)
+Fictitious client "Solstice Financial Services" - created for AssureAI pilot testing.
+This is NOT a real client transcript. Any resemblance to real individuals or
+organisations is coincidental.
+
+Control: PILOT-E-CM-005 - Standard Change Testing and Approval
+Interviewee: unnamed engineer, filling in for the usual Change Manager who was
+unavailable (fictitious person)
+
+[L01] Interviewer: Can you tell me about how standard changes are approved before going live?
+[L02] Interviewee: Um, I think most things go through CAB, yeah. I'm not really on that team though, I just deploy what I'm told is approved.
+[L03] Interviewer: Who specifically approves a change before you deploy it?
+[L04] Interviewee: I'm not totally sure. Sometimes I get a message from my lead saying it's good to go, sometimes I see something in the change tool, sometimes people just deploy directly if it's a small thing. I don't really know what the actual rule is.
+[L05] Interviewer: How often does testing happen before deployment?
+[L06] Interviewee: I mean, we should test everything, but I couldn't tell you how consistently that actually happens. Depends on the person and how busy things are.
+[L07] Interviewer: When in the process does approval happen relative to testing and deployment?
+[L08] Interviewee: Honestly I'm the wrong person to ask about the sequence, I just do my part when someone tells me to.
+[L09] Interviewer: Is there someone else who could speak to the actual approval process in more detail?
+[L10] Interviewee: Probably our Change Manager, but she's out this week. I really don't want to guess and give you the wrong picture.

@@ -21,26 +21,41 @@ This does NOT decide whether the control is well-designed, address gaps,
 or draft recommendations - see the "HARD STOP" boundary in the task this
 implements.
 """
+import logging
 import re
 import json
 import os
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
+_log = logging.getLogger(__name__)
+
+# The key only ever comes from the environment - never from code or a file in
+# the repo. Without it the HOW answer is tidied by the deterministic path below.
+_AI_MODEL_ENV = "ANTHROPIC_MODEL"
+_AI_MODEL_DEFAULT = "claude-opus-5"
+
+
 def _get_claude_client():
     """Lazy-load Anthropic client when needed, using environment variable."""
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        _log.debug("ANTHROPIC_API_KEY not set; using deterministic HOW tidy-up")
+        return None
     try:
         from anthropic import Anthropic
-        api_key = os.getenv("ANTHROPIC_API_KEY")
-        if not api_key:
-            print("[WARN] ANTHROPIC_API_KEY not set in environment")
-            return None
         return Anthropic(api_key=api_key)
     except Exception as e:
-        print(f"[ERROR] Failed to initialize Anthropic client: {e}")
+        _log.warning("Could not initialise the Anthropic client (%s); using deterministic HOW tidy-up", e)
         return None
 
-CLAUDE_CLIENT = None  # Will be initialized on first use
+
+def _condense_enabled() -> bool:
+    """On by default: each documented value is condensed to a short phrase
+    ("Weekly", "AP Supervisor") and the full answer stays available through the
+    attribute's source references. Set ASSUREAI_CONDENSE=0 to keep the full wording."""
+    return os.getenv("ASSUREAI_CONDENSE", "1").strip().lower() not in {"0", "false", "no", "off"}
+
 
 from app.schemas.common import (
     GenerationMetadata,
@@ -71,7 +86,6 @@ def _synthesize_how_answer(text: str) -> str:
     # Try AI-powered summarization
     client = _get_claude_client()
     if client:
-        print(f"[DEBUG] Claude client available, attempting AI summarization")
         try:
             prompt = f"""Transform this transcript into 3-5 professional control procedures. Write formally, not conversationally. Number each (1. 2. 3. etc). Remove filler and dialog markers. Focus on WHAT, WHEN, WHERE, WHO.
 
@@ -79,17 +93,14 @@ TRANSCRIPT: {text}
 
 Output only the numbered procedures."""
             msg = client.messages.create(
-                model="claude-opus-5-5", max_tokens=500,
+                model=os.getenv(_AI_MODEL_ENV, _AI_MODEL_DEFAULT), max_tokens=500,
                 messages=[{"role": "user", "content": prompt}]
             )
             if msg.content:
                 result = msg.content[0].text
-                print(f"[DEBUG] Claude summarization succeeded, returning {len(result)} chars")
                 return result
         except Exception as e:
-            print(f"[ERROR] Claude API failed: {e}")
-    else:
-        print(f"[WARN] Claude client unavailable, falling back to text cleaning")
+            _log.warning("Claude call failed (%s); using deterministic HOW tidy-up", e)
 
     # Remove segment ID markers (e.g., "36 ", "39 20 ", "L01 ")
     text = re.sub(r'\b\d+\s+(?=\w)', '', text)  # "36 We" -> "We"
@@ -452,24 +463,20 @@ def extract_control_documentation(
                 )
             )
 
-    # Condense verbose extracted values to business keywords/phrases
-    # while preserving source references for audit traceability
-    condensed_attributes: Dict[str, DocumentedAttribute] = {}
-    for field, attribute in attributes.items():
-        if attribute.value:
+    # Optional: condense verbose values to short business phrases while keeping
+    # each attribute's source references (the verbatim evidence) untouched.
+    if _condense_enabled():
+        condensed_attributes: Dict[str, DocumentedAttribute] = {}
+        for field, attribute in attributes.items():
             condense_fn = getattr(condenser, f"condense_{field}", None)
-            if condense_fn:
-                condensed_value = condense_fn(attribute.value)
+            if attribute.value and condense_fn:
                 condensed_attributes[field] = DocumentedAttribute(
-                    value=condensed_value,
-                    source_references=attribute.source_references
+                    value=condense_fn(attribute.value),
+                    source_references=attribute.source_references,
                 )
             else:
                 condensed_attributes[field] = attribute
-        else:
-            condensed_attributes[field] = attribute
-
-    attributes = condensed_attributes
+        attributes = condensed_attributes
 
     documentation = ControlDocumentation(
         **attributes,

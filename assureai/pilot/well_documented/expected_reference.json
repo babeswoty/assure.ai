@@ -1,0 +1,47 @@
+{
+  "case_id": "well_documented",
+  "control_id": "PILOT-A-UAM-001",
+
+  "expected_what": {
+    "value": "New-hire access requests are submitted by the manager via a ServiceNow form, checked by IT Security against a standard role-based access profile, and provisioned in Active Directory / target application groups."
+  },
+  "expected_who": {
+    "value": "Requestor: the new hire's manager. Reviewer/provisioner: an IT Security Analyst plus one colleague in IT Security."
+  },
+  "expected_when": {
+    "value": "Continuously, triggered by HR's new-starter notification (not on a fixed schedule); target of 2 business days from the start date."
+  },
+  "expected_why": {
+    "value": "To prevent over-provisioning or access outside the new hire's role - i.e. to stop a manager's request being granted as-is without an independent check against the role's standard profile."
+  },
+  "expected_where": {
+    "value": "ServiceNow (request form, approval, provisioning ticket in one record) and Active Directory (account and application group provisioning)."
+  },
+  "expected_how": {
+    "value": "Manager submits a ServiceNow access request; IT Security compares it to the standard role-based access profile; the analyst creates the AD account from a role-based template, assigns the approved application groups, and attaches a screenshot of the final group membership to the ticket."
+  },
+
+  "expected_missing_information": [],
+
+  "expected_traceability": [
+    {"field": "documentation.what", "source": {"source_id": "WT-PILOT-A-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case A Walkthrough Transcript (SYNTHETIC)", "locator": "L02-L03", "excerpt": "their manager submits an access request form through the ServiceNow portal"}},
+    {"field": "documentation.who", "source": {"source_id": "WT-PILOT-A-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case A Walkthrough Transcript (SYNTHETIC)", "locator": "L05", "excerpt": "I do, along with one of my colleagues in IT Security"}},
+    {"field": "documentation.when", "source": {"source_id": "WT-PILOT-A-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case A Walkthrough Transcript (SYNTHETIC)", "locator": "L07", "excerpt": "triggered every time HR notifies us of a new starter"}},
+    {"field": "documentation.why", "source": {"source_id": "WT-PILOT-A-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case A Walkthrough Transcript (SYNTHETIC)", "locator": "L09", "excerpt": "this is our way of preventing over-provisioning or granting access outside someone's role"}},
+    {"field": "documentation.where", "source": {"source_id": "WT-PILOT-A-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case A Walkthrough Transcript (SYNTHETIC)", "locator": "L11", "excerpt": "Everything lives in ServiceNow"}},
+    {"field": "documentation.how", "source": {"source_id": "WT-PILOT-A-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case A Walkthrough Transcript (SYNTHETIC)", "locator": "L13", "excerpt": "I create the account in Active Directory using our standard role-based templates"}}
+  ],
+
+  "design_conclusion_determinable": true,
+  "expected_design_conclusion": "pass",
+  "expected_design_rationale": "All six attributes are clearly established from a single consistent account. The control has an independent reviewer (IT Security, distinct from the requesting manager), a defined criterion (standard role-based profile), a target timeframe, a stated rationale tied directly to the risk, and retained evidence (ServiceNow record plus a screenshot of resulting access). Relevant to the risk and aligned with the stated control objective.",
+
+  "expected_risk_objective_control_alignment": {
+    "result": "pass",
+    "rationale": "The control as described directly achieves the stated objective: manager-initiated requests are independently checked against a role-based profile before provisioning, which is exactly the mechanism the objective calls for.",
+    "source_locator": "L05,L09"
+  },
+  "expected_gap_indicator": {"expected": false},
+
+  "reviewer_notes": "This is the pilot's 'clean' baseline case: a single fluent account, no contradictions, covers all six attributes with a stated rationale distinct from a generic 'best practice' answer. Used to test that AssureAI reaches ALIGNED/PASS conclusions with SUPPORTED citations when the evidence genuinely supports it - not just that it can hedge or flag issues."
+}

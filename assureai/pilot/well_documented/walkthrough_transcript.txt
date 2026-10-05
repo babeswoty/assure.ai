@@ -1,0 +1,21 @@
+SYNTHETIC WALKTHROUGH TRANSCRIPT - PILOT CASE A (WELL_DOCUMENTED)
+Fictitious client "Solstice Financial Services" - created for AssureAI pilot testing.
+This is NOT a real client transcript. Any resemblance to real individuals or
+organisations is coincidental.
+
+Control: PILOT-A-UAM-001 - New User Access Provisioning Approval
+Interviewee: T. Nkosi, IT Security Analyst (fictitious person)
+
+[L01] Interviewer: Can you walk me through how a new employee gets system access?
+[L02] Interviewee: Sure. When someone joins, their manager submits an access request form through the ServiceNow portal.
+[L03] Interviewee: The form lists the specific systems and access level needed based on the new hire's job role.
+[L04] Interviewer: Who reviews that request?
+[L05] Interviewee: I do, along with one of my colleagues in IT Security. We check the requested access against the standard access profile for that role before provisioning anything.
+[L06] Interviewer: How often does this happen, or is it triggered by something specific?
+[L07] Interviewee: It's triggered every time HR notifies us of a new starter, so it happens continuously, not on a schedule. We aim to provision within 2 business days of the start date.
+[L08] Interviewer: Why do you check against a standard access profile rather than just granting what the manager asks for?
+[L09] Interviewee: Because managers don't always know the technical access needed, and this is our way of preventing over-provisioning or granting access outside someone's role. It's a control against a manager just rubber-stamping whatever the new employee's predecessor had.
+[L10] Interviewer: Where is all this recorded?
+[L11] Interviewee: Everything lives in ServiceNow - the request form, our approval, and the provisioning ticket are all in the same record, timestamped.
+[L12] Interviewer: And how exactly do you provision the access once it's approved?
+[L13] Interviewee: I create the account in Active Directory using our standard role-based templates, then assign the specific application groups listed on the approved request. I take a screenshot of the final group membership and attach it to the ServiceNow ticket.

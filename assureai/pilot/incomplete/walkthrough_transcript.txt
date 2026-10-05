@@ -1,0 +1,20 @@
+SYNTHETIC WALKTHROUGH TRANSCRIPT - PILOT CASE B (INCOMPLETE)
+Fictitious client "Solstice Financial Services" - created for AssureAI pilot testing.
+This is NOT a real client transcript. Any resemblance to real individuals or
+organisations is coincidental.
+
+Control: PILOT-B-UAM-002 - Terminated Employee Access Revocation
+Interviewee: M. Dlamini, IT Operations (fictitious person)
+
+[L01] Interviewer: What happens to a user's access when they leave the company?
+[L02] Interviewee: HR sends us a termination notice, and then we go into Active Directory and disable the account.
+[L03] Interviewer: Who specifically does that?
+[L04] Interviewee: Usually whoever's free on the helpdesk team picks it up from the ticket queue.
+[L05] Interviewer: How do you carry out the deactivation - what are the actual steps?
+[L06] Interviewee: We disable the AD account, and then remove them from the major application groups we remember to check - email, VPN, the finance system if they had it.
+[L07] Interviewer: When does this happen relative to the termination date - is there a target timeframe?
+[L08] Interviewee: I'm honestly not sure there's an official timeframe. It depends on how busy the queue is. Sometimes same day, sometimes it's been a few days, I think.
+[L09] Interviewer: Is there a reason deactivation isn't done immediately or on a set schedule?
+[L10] Interviewee: I couldn't tell you why it's set up this way. It's just always been handled through the general helpdesk queue - nobody's ever explained a specific reason to me.
+[L11] Interviewer: Where is this recorded?
+[L12] Interviewee: There's a helpdesk ticket in our ticketing system for each one.

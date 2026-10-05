@@ -54,126 +54,88 @@ def health_check():
     return {"status": "ok", "service": "AssureAI test API"}
 
 
+_LEGACY_FORMAT_HELP = {
+    ".xls": "Legacy .xls files are not supported - open it in Excel and use Save As .xlsx.",
+    ".doc": "Legacy .doc files are not supported - open it in Word and use Save As .docx.",
+}
+
+
+def _extension(filename: str) -> str:
+    return Path(filename).suffix.lower()
+
+
 @router.post("/convert-excel-to-racm")
 async def convert_excel_to_racm(file: UploadFile = File(...)):
-    """Convert Excel RACM format to JSON RACMControlRecord.
+    """Read a RACM spreadsheet (.xlsx) and return the equivalent RACMControlRecord.
 
-    Accepts .xlsx or .xls files and returns the equivalent JSON structure.
-
-    Returns:
-    - 200: Successfully parsed and validated
-    - 400: File format error (unsupported type, empty, missing worksheet/headers)
-    - 422: Validation error (missing required fields in data rows)
-    - 500: Unexpected infrastructure error
+    - 200: parsed and validated
+    - 400: unsupported or empty file, unreadable workbook, or missing headers
+    - 422: a data row is missing a required identifier, or fails schema validation
     """
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+    ext = _extension(file.filename)
+    if ext in _LEGACY_FORMAT_HELP:
+        raise HTTPException(status_code=400, detail=_LEGACY_FORMAT_HELP[ext])
+    if ext != ".xlsx":
+        raise HTTPException(status_code=400, detail="File must be an .xlsx workbook")
+
+    file_bytes = await file.read()
+    if not file_bytes:
+        raise HTTPException(status_code=400, detail="File is empty")
+
     try:
-        if not file.filename:
-            raise HTTPException(status_code=400, detail="No file provided")
+        racm_dict = extract_racm_from_excel(file_bytes)
+    except ExcelValidationError as e:
+        raise HTTPException(
+            status_code=422,
+            detail=[{"field": f"row {err['row']}: {err['field']}", "message": err["message"]} for err in e.errors],
+        )
+    except ExcelParsingError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-        # Check file extension
-        if not (file.filename.endswith('.xlsx') or file.filename.endswith('.xls')):
-            raise HTTPException(status_code=400, detail="File must be .xlsx or .xls format")
-
-        # Read file bytes
-        file_bytes = await file.read()
-        if not file_bytes:
-            raise HTTPException(status_code=400, detail="File is empty")
-
-        print(f"[DEBUG] Processing Excel file: {file.filename}, Size: {len(file_bytes)} bytes")
-
-        # Convert Excel to RACM dict
-        try:
-            racm_dict = extract_racm_from_excel(file_bytes)
-        except ExcelValidationError as e:
-            # Structured validation errors - return 422 with error details
-            print(f"[DEBUG] Validation errors: {e.errors}")
-            raise HTTPException(status_code=422, detail={"errors": e.errors})
-        except ExcelParsingError as e:
-            # File format/parsing errors - return 400
-            print(f"[DEBUG] Parsing error: {str(e)}")
-            raise HTTPException(status_code=400, detail=str(e))
-
-        print(f"[DEBUG] Extracted RACM dict with control_id: {racm_dict.get('control', {}).get('control_id')}")
-
-        # Validate the converted record using schema validation
-        try:
-            record = validate_record(racm_dict)
-            print(f"[DEBUG] Validation passed")
-        except ValidationError as e:
-            # Schema validation errors - return 422 with structured error details
-            error_details = _validation_error_detail(e)
-            print(f"[DEBUG] Schema validation errors: {error_details}")
-            raise HTTPException(status_code=422, detail=error_details)
-
-        # Return as JSON
-        return record.model_dump(mode="json")
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        # Unexpected errors - return 500 only for infrastructure issues
-        error_msg = f"Unexpected error: {type(e).__name__}: {str(e)}"
-        print(f"[ERROR] {error_msg}")
-        raise HTTPException(status_code=500, detail=error_msg) from e
+    try:
+        record = validate_record(racm_dict)
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=_validation_error_detail(e))
+    return record.model_dump(mode="json")
 
 
 @router.post("/extract-text-from-document")
 async def extract_text_from_document(file: UploadFile = File(...)):
-    """Extract text from .docx, .doc, or .txt files.
+    """Return the plain text of a .docx or .txt file.
 
-    Returns:
-    - 200: Successfully extracted text
-    - 400: Unsupported file type or empty file
-    - 500: Unexpected error
+    - 200: {"text", "filename"}
+    - 400: unsupported or empty file, or text could not be read
     """
-    try:
-        if not file.filename:
-            raise HTTPException(status_code=400, detail="No file provided")
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+    ext = _extension(file.filename)
+    if ext in _LEGACY_FORMAT_HELP:
+        raise HTTPException(status_code=400, detail=_LEGACY_FORMAT_HELP[ext])
+    if ext not in (".docx", ".txt"):
+        raise HTTPException(status_code=400, detail="File must be a .docx or .txt document")
 
-        # Read file bytes
-        file_bytes = await file.read()
-        if not file_bytes:
-            raise HTTPException(status_code=400, detail="File is empty")
+    file_bytes = await file.read()
+    if not file_bytes:
+        raise HTTPException(status_code=400, detail="File is empty")
 
-        # Handle different file types
-        if file.filename.endswith('.docx'):
-            if not Document:
-                raise HTTPException(status_code=500, detail="python-docx not installed")
+    if ext == ".txt":
+        try:
+            text = file_bytes.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            raise HTTPException(status_code=400, detail="The .txt file is not valid UTF-8 text")
+    else:
+        if not Document:
+            raise HTTPException(status_code=500, detail="python-docx is not installed")
+        try:
+            text = "\n".join(paragraph.text for paragraph in Document(BytesIO(file_bytes)).paragraphs)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Could not read the .docx file - is it a valid Word document?")
 
-            try:
-                doc = Document(BytesIO(file_bytes))
-                text = "\n".join(paragraph.text for paragraph in doc.paragraphs)
-                return {"text": text, "filename": file.filename}
-            except Exception as e:
-                raise HTTPException(status_code=400, detail=f"Failed to parse .docx file: {str(e)}")
-
-        elif file.filename.endswith('.doc'):
-            # For .doc files, try to use python-docx (it supports some .doc files)
-            if not Document:
-                raise HTTPException(status_code=500, detail="python-docx not installed")
-            try:
-                doc = Document(BytesIO(file_bytes))
-                text = "\n".join(paragraph.text for paragraph in doc.paragraphs)
-                return {"text": text, "filename": file.filename}
-            except Exception as e:
-                raise HTTPException(status_code=400, detail=f"Failed to parse .doc file: {str(e)}")
-
-        elif file.filename.endswith('.txt'):
-            try:
-                text = file_bytes.decode('utf-8')
-                return {"text": text, "filename": file.filename}
-            except Exception as e:
-                raise HTTPException(status_code=400, detail=f"Failed to decode .txt file: {str(e)}")
-
-        else:
-            raise HTTPException(status_code=400, detail=f"Unsupported file type: {file.filename}")
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        error_msg = f"Unexpected error: {type(e).__name__}: {str(e)}"
-        print(f"[ERROR] {error_msg}")
-        raise HTTPException(status_code=500, detail=error_msg) from e
+    if not text.strip():
+        raise HTTPException(status_code=400, detail="No text was found in the file")
+    return {"text": text, "filename": file.filename}
 
 
 # ---------- Screen 1: RACM input / pilot fixtures ----------

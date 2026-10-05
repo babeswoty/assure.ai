@@ -13,7 +13,7 @@ pipeline of small agents, reviews the drafts, and exports an Excel row.
 
 Stack: Python 3.12 + FastAPI + Pydantic v2 + pytest (backend, own venv);
 React 18 + TypeScript + Vite + Tailwind + Vitest/React Testing Library (frontend).
-Layout: assureai/backend, assureai/frontend, assureai/pilot (fixtures).
+Layout: assureai/backend, assureai/frontend, assureai/pilot (test fixtures, not shown in the UI), assureai/samples.
 Frontend runs on :5174 and proxies /api to the backend on :8001.
 
 Non-negotiable rules:
@@ -163,13 +163,12 @@ Acceptance: TestClient tests for the full pipeline over each pilot case and for 
 ```
 Build the React UI with a green brand theme (#86BC25) and black/grey ink palette.
 Numbered section cards, each disabled until its prerequisite exists:
-1 RACM Input (pilot dropdown + Load Control, an "Upload RACM file from your computer"
-  dropdown that reads a .json record, a "paste JSON" advanced option, full RACM field
-  display). Upload and paste share one loader and the same backend validation; an upload
-  also drops the previous pilot case's fixture transcript.
+1 RACM Input (no pilot or fixture controls in the UI: an open "Upload RACM file from your
+  computer" dropdown that reads an Excel .xlsx or a .json record, a "paste JSON" advanced
+  option, full RACM field display). Excel goes to POST /api/convert-excel-to-racm; JSON, paste
+  and Excel all end in the same backend validation.
 2 Walkthrough Questions
-3 Walkthrough Transcript (Load fixture + "Upload transcript" for a .txt file + textarea +
-  Process). Upload is locked until the questions are approved, rejects an empty file,
+3 Walkthrough Transcript ("Upload transcript" for a .docx or .txt file + textarea + Process). .docx goes to POST /api/extract-text-from-document (python-docx); .txt is read in the browser. Upload is locked until the questions are approved, rejects an empty file,
   and any new or edited transcript needs approval again before it can be processed.
   Use a visually hidden but focusable file input, not display:none, so it stays keyboard
   accessible.
@@ -214,8 +213,8 @@ box for Edit, a Submit button, and an audit panel (AI draft unchanged vs reviewe
 Per gap card: Edit/Done toggle for title, observation, root cause and recommendation (Risk
 stays read-only), plus Action Owner text box and Action Date native date picker, keyed by
 gap_id.
-Button labels reflect state: Load Control -> Control Loaded, Generate Walkthrough Questions
--> Questions Generated, Load fixture transcript -> Fixture Transcript Loaded, Process
+Button labels reflect state: Validate & Load -> Validated & Loaded, Generate Walkthrough Questions
+-> Questions Generated, Upload transcript -> Transcript Uploaded, Process
 Transcript -> Transcript Processed, Assess Control Design -> Control Design Assessed, Draft
 Gaps -> Gaps Drafted, Approve/Edit/Reject -> Approved/Editing/Rejected, Submit Review
 Decision -> Review Decision Submitted (disabled; resets if a different decision is
@@ -250,12 +249,47 @@ numbering, and a live export of design_issue and well_documented.
 ## Phase 11: Hardening
 
 ```
-Pilot clean-up (when the real project is ready): remove the pilot dropdown + Load Control
-button, "Load fixture transcript", the /api/pilot/* endpoints, and the assureai/pilot folder
-with its tests. Uploads and paste become the only inputs.
+Excel RACM import (app/excel_import.py): the standard headers are the app's own Excel export
+headers (Engagement ID, Client, OpCo, Area, Mega Process, Process, Sub-process, Control ID,
+Control Reference, Control Title, Risk ID, Risk Description, Control Objective, Suggested Control
+Description, Control Frequency, Control Nature, Control Type, Expected Evidence, Suggested Test
+Procedures (ToD)/(ToE)), so an exported RACM can be uploaded again. Accept common older names as
+aliases (Risk Ref, Control Ref, Process Name, Suggested Control, ...). Require only Risk ID and a
+control identifier. Detect the header row in the top 10 rows, prefer a sheet named 'RACM Upload',
+read only the first control row, and assume nothing about the client (default 'Not specified').
+Reject legacy .xls and .doc with a clear 'Save As .xlsx/.docx' message, since openpyxl and
+python-docx cannot read them.
 
-Run full pytest and vitest and type-check with tsc. Verify live in the browser: dropdown
-populated, full pipeline, export opened and inspected. Document how to start both
+Optional extras, all off unless configured: ANTHROPIC_API_KEY (from the environment only, never a
+file in the repo) lets Claude tidy the HOW answer, with a deterministic fallback; ANTHROPIC_MODEL
+picks the model; ASSUREAI_CONDENSE=0 turns off the short-phrase wording of the structured documentation (on by
+default). Because a short phrase can drop evidence (who performs AND reviews), the independence
+check in the design assessment also reads the verbatim source excerpts, not only the documented value. Tests must
+clear these variables so they never call an outside service.
+
+Structured documentation wording (app/transcript_extraction/condenser.py): each of the six attributes
+is a short documentation phrase, never a quote of the conversation. WHEN is a frequency keyword
+(every Thursday -> Weekly, once a year -> Yearly, twice a year -> Twice a year, quarterly, monthly,
+daily, fortnightly) or, for an event, 'Triggered every time/whenever/when ...'; if both are given,
+both. WHO is the role or team names (AP Supervisor, Finance Manager, Helpdesk Team, CAB), not the
+sentence; a first-person answer with no role named keeps its words. WHY is 'To <verb> ...' (this
+prevents X -> To prevent X). WHERE is the system or location (ServiceNow, Finance System, Shared
+Drive Folder “Access Reviews”). WHAT and HOW lose filler and the speaker ('I go through the list'
+-> 'Go through the list'), contractions are expanded, and HOW stays a numbered list. Safety rules:
+every word comes from the answer (or is a fixed label like Weekly), when a field can't be condensed
+confidently the original wording is kept, nothing is ever cut mid-clause, and source excerpts stay
+verbatim so the full conversation is one click away under View source. The UI must strip existing
+'1.' numbering before it adds its own, or steps show as '1. 1.'.
+
+Sample data: assureai/samples holds a synthetic Excel RACM using the standard headers plus a
+matching transcript as .txt and .docx; a test runs them through the whole pipeline so they stay valid.
+
+Pilot clean-up: the pilot dropdown, Load Control button and Load fixture transcript button are gone
+from the UI. The assureai/pilot folder and /api/pilot/* endpoints remain only as test fixtures; delete
+them (and the tests that use them) once the samples and your own data cover those scenarios.
+
+Run full pytest and vitest and type-check with tsc. Verify live in the browser: upload a
+RACM and a transcript, full pipeline, export opened and inspected. Document how to start both
 servers.
 ```
 
@@ -267,4 +301,4 @@ servers.
 - Pydantic's `model_copy(update=...)` doesn't validate nested dicts. Build real model objects in test helpers.
 - React Testing Library throws on duplicate text such as "Adequate" or "Edit". Scope queries or use `getAllBy`.
 - Native date inputs are awkward to automate in browser tests.
-- On Windows, start the backend as a detached process, or it dies with the session. An empty pilot dropdown means the backend is down.
+- On Windows, start the backend as a detached process, or it dies with the session. Upload errors such as 'status code 500' mean the backend is down.

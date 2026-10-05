@@ -1,0 +1,52 @@
+{
+  "case_id": "potential_gap",
+  "control_id": "PILOT-D-CM-004",
+
+  "expected_what": {
+    "value": "An engineer deploys an emergency production fix immediately and logs it in the change management tool; the change then goes to the CAB for post-implementation approval."
+  },
+  "expected_who": {
+    "value": "The deploying engineer initiates the emergency change. The CAB - the Change Manager (P. Naidoo) plus two other senior engineers - performs the post-implementation approval."
+  },
+  "expected_when": {
+    "value": "Deployment happens immediately when needed; CAB approval is targeted within 2 business days after deployment."
+  },
+  "expected_why": {
+    "value": "Waiting for CAB approval before an emergency fix would worsen the production outage, so the fix happens first and independent review confirms appropriateness shortly afterward."
+  },
+  "expected_where": {
+    "value": "The change management tool: a ticket for the emergency change itself, and a separate approval record once CAB signs off."
+  },
+  "expected_how": {
+    "value": "CAB reviews what was changed, why, whether it worked, and whether a follow-up standard change request is needed for a permanent fix."
+  },
+
+  "expected_missing_information": [],
+
+  "expected_traceability": [
+    {"field": "documentation.what", "source": {"source_id": "WT-PILOT-D-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case D Walkthrough Transcript (SYNTHETIC)", "locator": "L02", "excerpt": "the engineer deploys the fix immediately and logs it as an emergency change"}},
+    {"field": "documentation.who", "source": {"source_id": "WT-PILOT-D-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case D Walkthrough Transcript (SYNTHETIC)", "locator": "L04", "excerpt": "the change is supposed to go to the CAB - that's myself and two other senior engineers"}},
+    {"field": "documentation.when", "source": {"source_id": "WT-PILOT-D-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case D Walkthrough Transcript (SYNTHETIC)", "locator": "L04", "excerpt": "for approval within 2 business days after the fact"}},
+    {"field": "documentation.why", "source": {"source_id": "WT-PILOT-D-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case D Walkthrough Transcript (SYNTHETIC)", "locator": "L06", "excerpt": "waiting for a CAB meeting before fixing a production outage would make the outage worse"}},
+    {"field": "documentation.where", "source": {"source_id": "WT-PILOT-D-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case D Walkthrough Transcript (SYNTHETIC)", "locator": "L08", "excerpt": "a ticket for the emergency change itself, and a separate approval record once CAB signs off"}},
+    {"field": "documentation.how", "source": {"source_id": "WT-PILOT-D-01", "source_type": "walkthrough_transcript", "source_name": "Pilot Case D Walkthrough Transcript (SYNTHETIC)", "locator": "L10", "excerpt": "We look at what was changed, why, whether it worked"}}
+  ],
+
+  "design_conclusion_determinable": true,
+  "expected_design_conclusion": "pass",
+  "expected_design_rationale": "As DESIGNED, the control is coherent: a fast fix followed by a defined, independent post-implementation review within a stated SLA, with a clear rationale for the after-the-fact sequencing. All six attributes are established from a consistent account. This case is not about a design flaw - see expected_gap_indicator for the separate operating-effectiveness issue this walkthrough surfaces.",
+
+  "expected_risk_objective_control_alignment": {
+    "result": "pass",
+    "rationale": "The two-step design (immediate fix, then independent CAB review) directly addresses the risk of unauthorized or untested emergency changes going undetected, consistent with the stated control objective.",
+    "source_locator": "L04,L06"
+  },
+  "expected_gap_indicator": {
+    "expected": true,
+    "gap_type": "operating_effectiveness_gap",
+    "description": "Of the last 6 emergency changes this quarter, only 2 have a completed CAB post-implementation approval record; the other 4 remain open, one over three weeks past the 2-business-day SLA, with no escalation or tracking mechanism for overdue approvals (L11-L14). The control is well designed but is not operating effectively as executed.",
+    "source_locator": "L12-L14"
+  },
+
+  "reviewer_notes": "This is the pilot's 'design is fine, execution is not' case - a negative control for missing-information detection (nothing here should be flagged as missing; all six attributes are answered) paired with a genuine, textually-explicit operating gap that only a design-vs-operation distinction can catch. expected_gap_indicator is ground truth for when gap-assessment logic is eventually built; it is not asserted through the current schema's design_assessment, which only speaks to design, not operating effectiveness."
+}

@@ -95,9 +95,54 @@ def _passivize_match(match: "re.Match[str]") -> str:
     return replacement
 
 
+# A second verb joined to an already-passive clause: "the journal was prepared in the
+# system and attach the schedule" -> "... and the schedule was attached". Only a plain
+# noun-phrase object is rewritten; an object that is really a clause (it contains a verb
+# such as "is"/"are") is left alone.
+_CONJUNCT_RE = re.compile(
+    r"(?P<conj>(?:,\s*)?\b(?:and then|and|then)\s+)(?P<verb>[A-Za-z]+)\s+(?P<obj>.+?)"
+    r"(?=\s+\b(?:" + "|".join(_BOUNDARY_WORDS) + r")\b|[.!?;,]|$)",
+    re.IGNORECASE,
+)
+_CLAUSE_VERBS = {"is", "are", "was", "were", "has", "have", "had", "will", "should", "can", "must", "does", "do"}
+_ALREADY_PASSIVE = re.compile(r"\b(?:was|were)\s+[a-z]+(?:ed|en|t)\b", re.IGNORECASE)
+
+
+def _passivize_conjunct(match: "re.Match[str]") -> str:
+    verb = match.group("verb").lower()
+    obj = match.group("obj").strip().rstrip(",")
+    participle = _PAST_PARTICIPLES.get(verb)
+    if not participle or not obj:
+        return match.group(0)
+    sentence_so_far = re.split(r"[.!?]", match.string[: match.start()])[-1]
+    if not _ALREADY_PASSIVE.search(sentence_so_far):
+        return match.group(0)
+
+    tokens = obj.split()
+    first_word = tokens[0].lower().strip(",.")
+    # If the rest of the sentence still holds a clause verb, the "object" is really the
+    # start of a longer clause ("confirm the accounts and amounts are correct"): leave it.
+    remainder = re.split(r"[.!?;]", match.string[match.end():], maxsplit=1)[0]
+    if (
+        first_word in _WEAK_OBJECT_HEADS
+        or first_word in _BOUNDARY_WORDS
+        or len(tokens) > 8
+        or any(t.lower().strip(",.") in _CLAUSE_VERBS for t in tokens)
+        or any(t.lower().strip(",.") in _CLAUSE_VERBS for t in remainder.split())
+    ):
+        return match.group(0)
+    if first_word not in _DETERMINERS:
+        obj = f"the {obj}"
+        tokens = obj.split()
+    last_word = tokens[-1].lower().strip(",.")
+    is_plural = last_word.endswith("s") and last_word not in _SINGULAR_S_EXCEPTIONS and len(last_word) > 3
+    return f"{match.group('conj')}{obj} {'were' if is_plural else 'was'} {participle}"
+
+
 def to_documentation_voice(text: Optional[str]) -> Optional[str]:
     """Rewrites recognizable first-person clauses in `text` to passive
     voice. Returns text unchanged (including None) when nothing matches."""
     if not text:
         return text
-    return _PRONOUN_VERB_OBJECT_RE.sub(_passivize_match, text)
+    text = _PRONOUN_VERB_OBJECT_RE.sub(_passivize_match, text)
+    return _CONJUNCT_RE.sub(_passivize_conjunct, text)

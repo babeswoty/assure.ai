@@ -1,0 +1,49 @@
+{
+  "case_id": "insufficient_information",
+  "control_id": "PILOT-E-CM-005",
+
+  "expected_what": {
+    "value": null,
+    "note": "Interviewee describes conflicting, uncertain practices ('sometimes... sometimes... sometimes people just deploy directly') without confirming an actual documented procedure - no consistent description of the process was obtained."
+  },
+  "expected_who": {
+    "value": null,
+    "note": "Interviewee explicitly does not know the actual rule for who approves ('I don't really know what the actual rule is') and was not the control owner."
+  },
+  "expected_when": {
+    "value": null,
+    "note": "Interviewee explicitly declined to speculate about sequencing ('I'm the wrong person to ask about the sequence')."
+  },
+  "expected_why": {
+    "value": null,
+    "note": "Never discussed - the interview never reached a rationale for the control's design."
+  },
+  "expected_where": {
+    "value": null,
+    "note": "No system or location for approval/testing records was named."
+  },
+  "expected_how": {
+    "value": null,
+    "note": "No consistent testing procedure was described ('I couldn't tell you how consistently that actually happens')."
+  },
+
+  "expected_missing_information": [
+    {"field": "documentation.what", "reason": "Interviewee described inconsistent, non-authoritative practice rather than a confirmed procedure.", "follow_up_question": "What is the documented standard-change approval and testing procedure, and is it consistently followed?", "status": "open"},
+    {"field": "documentation.who", "reason": "Interviewee did not know the actual approval rule and was not the control owner.", "follow_up_question": "Who is specifically responsible for approving a standard change before deployment?", "status": "open"},
+    {"field": "documentation.when", "reason": "Interviewee explicitly declined to describe the sequence of testing, approval, and deployment.", "follow_up_question": "At what point does CAB approval occur relative to testing and deployment?", "status": "open"},
+    {"field": "documentation.why", "reason": "Not discussed in this walkthrough.", "follow_up_question": "Why is the standard-change process designed this way, and what risk is it intended to address?", "status": "open"},
+    {"field": "documentation.where", "reason": "No system or location was identified for approval or testing evidence.", "follow_up_question": "Where are testing results and CAB approvals recorded?", "status": "open"},
+    {"field": "documentation.how", "reason": "Interviewee could not describe how consistently testing is actually performed.", "follow_up_question": "What are the actual steps for testing a standard change before deployment, and how is consistency enforced?", "status": "open"}
+  ],
+
+  "expected_traceability": [],
+
+  "design_conclusion_determinable": false,
+  "expected_design_conclusion": "insufficient_information",
+  "expected_design_rationale": "The interviewee was not the control owner, was filling in for the usual Change Manager, and repeatedly and explicitly declined to speculate ('I really don't want to guess and give you the wrong picture'). No attribute has a reliable answer. There is no basis to conclude the control is well-designed, poorly designed, or has an operating gap - a follow-up walkthrough with the actual control owner is required before any design or gap conclusion can be drawn.",
+
+  "expected_risk_objective_control_alignment": null,
+  "expected_gap_indicator": {"expected": false},
+
+  "reviewer_notes": "This is the pilot's canonical 'do not manufacture a conclusion' case. Success is AssureAI leaving design_assessment.* at NOT_ASSESSED/UNKNOWN (never PASS/PARTIAL/FAIL) and recording six missing-information entries rather than inferring plausible-sounding answers from the RACM input's own control objective wording. Any populated What/Who/When/Why/Where/How value, or any PASS/PARTIAL/FAIL design conclusion, produced from this transcript would itself be a material discrepancy (conclusion_despite_insufficient_evidence)."
+}

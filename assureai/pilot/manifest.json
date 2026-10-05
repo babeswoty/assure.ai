@@ -1,0 +1,61 @@
+{
+  "pilot_id": "PILOT-2026-01",
+  "description": "Initial AssureAI pilot input pack: 5 synthetic RACM controls for a fictitious client (Solstice Financial Services), designed to exercise well-documented, incomplete, design-alignment, operating-gap, and insufficient-evidence behaviours. No real client data is used anywhere in this pack.",
+  "cases": [
+    {
+      "case_id": "well_documented",
+      "control_id": "PILOT-A-UAM-001",
+      "scenario": "well_documented",
+      "racm_input_path": "well_documented/racm_input.json",
+      "racm_source_extract_path": "well_documented/racm_source_extract.json",
+      "walkthrough_input_path": "well_documented/walkthrough_transcript.txt",
+      "expected_reference_path": "well_documented/expected_reference.json",
+      "evaluation_dimensions": ["quality", "traceability", "usefulness"],
+      "expected_behavior": "AssureAI should extract all six control attributes ALIGNED with the reference, cite a SUPPORTED source for each, and reach a PASS design conclusion consistent with the reviewer's - this is the baseline case confirming the system behaves well when the evidence is genuinely clean, not just that it can hedge on hard cases."
+    },
+    {
+      "case_id": "incomplete",
+      "control_id": "PILOT-B-UAM-002",
+      "scenario": "incomplete",
+      "racm_input_path": "incomplete/racm_input.json",
+      "racm_source_extract_path": "incomplete/racm_source_extract.json",
+      "walkthrough_input_path": "incomplete/walkthrough_transcript.txt",
+      "expected_reference_path": "incomplete/expected_reference.json",
+      "evaluation_dimensions": ["missing_information_detection", "quality", "consistency"],
+      "expected_behavior": "AssureAI should leave documentation.when and documentation.why as None and produce a MissingInformation entry for each (TRUE_POSITIVE expected), while still populating what/who/where/how from what the transcript does support. Pairs with well_documented (same User Access Management subprocess family) to exercise the consistency dimension: comparable controls, but a genuinely different completeness outcome justified by different evidence, not a contradiction."
+    },
+    {
+      "case_id": "design_issue",
+      "control_id": "PILOT-C-UAM-003",
+      "scenario": "design_issue",
+      "racm_input_path": "design_issue/racm_input.json",
+      "racm_source_extract_path": "design_issue/racm_source_extract.json",
+      "walkthrough_input_path": "design_issue/walkthrough_transcript.txt",
+      "expected_reference_path": "design_issue/expected_reference.json",
+      "evaluation_dimensions": ["quality", "traceability"],
+      "expected_behavior": "Despite full documentation coverage, AssureAI should flag risk_objective_control_alignment as FAIL (self-review: the same person grants and reviews privileged access) rather than defaulting to PASS because all six attributes have text. The alignment conclusion should cite the specific exchange (L06-L08) that establishes the lack of independence - testing that AssureAI can produce a SUPPORTED citation for a critical/negative finding, not only for favourable ones."
+    },
+    {
+      "case_id": "potential_gap",
+      "control_id": "PILOT-D-CM-004",
+      "scenario": "potential_gap",
+      "racm_input_path": "potential_gap/racm_input.json",
+      "racm_source_extract_path": "potential_gap/racm_source_extract.json",
+      "walkthrough_input_path": "potential_gap/walkthrough_transcript.txt",
+      "expected_reference_path": "potential_gap/expected_reference.json",
+      "evaluation_dimensions": ["quality", "traceability", "missing_information_detection"],
+      "expected_behavior": "AssureAI should reach a PASS design conclusion (the DESIGN is sound) while not raising any missing-information flags (all six attributes are answered) - a negative control proving the system distinguishes 'well documented' from 'operating effectively'. The operating-effectiveness evidence (L11-L14: 4 of 6 emergency changes missing approval, no escalation) is ground truth reserved for the not-yet-built gap-assessment agent (see expected_gap_indicator in the reference file) and should not be conflated with a design or documentation problem now."
+    },
+    {
+      "case_id": "insufficient_information",
+      "control_id": "PILOT-E-CM-005",
+      "scenario": "insufficient_information",
+      "racm_input_path": "insufficient_information/racm_input.json",
+      "racm_source_extract_path": "insufficient_information/racm_source_extract.json",
+      "walkthrough_input_path": "insufficient_information/walkthrough_transcript.txt",
+      "expected_reference_path": "insufficient_information/expected_reference.json",
+      "evaluation_dimensions": ["missing_information_detection", "quality"],
+      "expected_behavior": "AssureAI must NOT manufacture a design conclusion or plausible-sounding attribute values from an unreliable interviewee's hedged, contradictory answers. Expected: all six attributes left None, six MissingInformation entries, and design_assessment.* left at NOT_ASSESSED/UNKNOWN. Any PASS/PARTIAL/FAIL conclusion or populated attribute here is itself a material discrepancy (conclusion_despite_insufficient_evidence). Pairs with potential_gap (same Change Management subprocess family) for the consistency dimension."
+    }
+  ]
+}
